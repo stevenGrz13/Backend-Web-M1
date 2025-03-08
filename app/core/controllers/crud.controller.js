@@ -1,5 +1,5 @@
 // src/components/core/controllers/crud.controller.js
-const logger = require("../../../../utils/logger");
+const logger = require("../../../utils/logger");
 
 class CrudController {
     constructor(service) {

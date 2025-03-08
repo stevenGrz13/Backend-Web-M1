@@ -1,4 +1,4 @@
-const vehicleService = require('./vehicle.service');
+const vehicleService = require('../services/vehicle.service');
 
 const CrudController = require('../core/controllers/crud.controller');
 

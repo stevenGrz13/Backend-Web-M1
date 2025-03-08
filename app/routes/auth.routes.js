@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const { jwtSecret } = process.env.JWT_SECRET;
-const User = require('../user/user.model'); // Exemple de modèle utilisateur
+const User = require('../models/user.model'); // Exemple de modèle utilisateur
 
 // Route de connexion
 router.post('/login', async (req, res) => {

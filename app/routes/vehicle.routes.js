@@ -1,8 +1,8 @@
 // src/components/vehicle/routes/vehicle.routes.js
 const express = require('express');
 const router = express.Router();
-const vehicleController = require('./vehicle.controller');
-const authMiddleware = require('../../../middleware/auth');
+const vehicleController = require('../controllers/vehicle.controller');
+const authMiddleware = require('../../middleware/auth');
 
 router.post('/', authMiddleware, vehicleController.create);
 router.get('/:id', authMiddleware, vehicleController.getById);

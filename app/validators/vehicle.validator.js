@@ -1,4 +1,4 @@
-// src/components/vehicle/validators/vehicle.validator.js
+// src/app/validators/vehicle.validator.js
 const Joi = require('joi');
 
 const createVehicleSchema = Joi.object({

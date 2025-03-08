@@ -1,6 +1,7 @@
 // src/components/user/services/user.service.js
+
 const CrudService = require('../core/services/crud.service');
-const User = require('./user.model');
+const User = require('../models/user.model');
 
 class UserService extends CrudService {
     constructor() {

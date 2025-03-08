@@ -1,5 +1,5 @@
-const Client = require('./client.model');
-const logger = require('../../../utils/logger')
+const Client = require('../models/client.model');
+const logger = require('../../utils/logger')
 
 // Créer un article
 exports.createClient = async (articleData) => {

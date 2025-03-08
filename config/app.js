@@ -23,9 +23,9 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, '../public')));
 
 // Routes
-app.use('garage/api/clients', require('../app/components/client/client.routes'));
-app.use('garage/api/managers', require('../app/components/manager/manager.routes'));
-app.use('garage/api/users', require('../app/components/user/user.routes'));
+app.use('garage/api/clients', require('../app/routes/client.routes'));
+app.use('garage/api/managers', require('../app/routes/manager.routes'));
+app.use('garage/api/users', require('../app/routes/user.routes'));
 
 
 mongoose.connect(process.env.MONGO_URI)
