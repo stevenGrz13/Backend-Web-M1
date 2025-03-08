@@ -1,8 +1,8 @@
 // src/components/mechanic/routes/mechanic.routes.js
 const express = require('express');
 const router = express.Router();
-const mechanicController = require('./mechanic.controller');
-const authMiddleware = require('../../../middleware/auth');
+const mechanicController = require('../controllers/mechanic.controller');
+const authMiddleware = require('../../middleware/auth');
 
 router.post('/', authMiddleware, mechanicController.create);
 router.get('/:id', authMiddleware, mechanicController.getById);

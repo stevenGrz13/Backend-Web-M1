@@ -1,4 +1,4 @@
-const Manager = require('./manager.model');
+const Manager = require('../models/manager.model');
 const CrudService = require('../core/services/crud.service')
 
 class ManagerService extends CrudService{

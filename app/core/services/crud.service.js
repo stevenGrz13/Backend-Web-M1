@@ -1,6 +1,6 @@
 // src/components/core/services/crud.service.js
 
-const logger = require("../../../../utils/logger");
+const logger = require("../../../utils/logger");
 class CrudService {
     constructor(model) {
         this.model = model;
