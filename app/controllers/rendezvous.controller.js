@@ -2,10 +2,12 @@ const RendezVousService = require('../services/rendezvous.service');
 
 const creerRendezVous = async (req, res) => {
     try {
-        const { clientId, date, heure, description } = req.body;
-        if (!clientId || !date || !heure) return res.status(400).json({ message: "Tous les champs sont requis" });
+        const { clientId, date, heure, description, idVehicule, idMechanicien, status } = req.body;
+        // if (!clientId || !date || !heure || !idVehicule) return res.status(400).json({ message: "Tous les champs sont requis" });
 
-        const rendezVous = await RendezVousService.creerRendezVous(clientId, date, heure, description);
+        // const listeRendezVous = await RendezVousService.findAll();
+
+        const rendezVous = await RendezVousService.creerRendezVous(clientId, date, heure, description, idVehicule, idMechanicien, status);
         res.status(201).json({ message: "Rendez-vous créé avec succès", rendezVous });
     } catch (error) {
         res.status(400).json({ message: error.message });

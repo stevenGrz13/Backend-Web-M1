@@ -7,6 +7,7 @@ const vehicleSchema = new mongoose.Schema({
     model: { type: String, required: true },
     annee: { type: Number, required: true },
     kilometrage: { type: Number, required: true },
+    immatriculation: { type: String, required: true },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Vehicle', vehicleSchema);

@@ -7,8 +7,10 @@ class ClientController extends CrudController {
 
     async createClient(req, res) {
         try {
+            console.log("MIANTSO ANLE CREATE CLIENT LERY");
             const client = await clientService.createClient(req.body);
             res.status(201).json(client);
+            console.log("IO FA MIDINA");
         } catch (error) {
             res.status(500).json({ message: "Erreur lors de la création du client", error: error.message });
         }

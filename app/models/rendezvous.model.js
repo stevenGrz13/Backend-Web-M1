@@ -5,6 +5,8 @@ const RendezVousSchema = new mongoose.Schema({
     date: { type: Date, required: true },
     heure: { type: String, required: true }, // Ex: "14:30"
     description: { type: String },
+    idVehicule: { type: String },
+    idMechanicien: { type: mongoose.Schema.Types.ObjectId, ref: 'Mechanic' },
     statut: { type: String, enum: ['en attente', 'confirmé', 'annulé'], default: 'en attente' }
 }, { timestamps: true });
 

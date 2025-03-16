@@ -5,7 +5,7 @@ const ManagerSchema = new mongoose.Schema({
     prenom: { type: String, required: true },
     adresse: { type: String, required: true },
     courriel: { type: String, required: true },
-    motdepasse: { type: String, required: true },
+    motdepasse: { type: String, required: true }, 
 }, { timestamps: true });
 
 module.exports = mongoose.model('Manager', ManagerSchema);
