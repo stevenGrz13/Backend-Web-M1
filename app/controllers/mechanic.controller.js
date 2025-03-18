@@ -30,6 +30,18 @@ class MechanicController extends CrudController {
         }
     }
 
+    async getNbrMechanic(req, res) {
+        try {
+            const mechanic = await mechanicService.getNbrMechanics();
+            if (!mechanic) {
+                return res.status(404).json({ message: "Erreur lors de la prise des nombres des mechaniciens" });
+            }
+            return res.status(200).json({ nombre : mechanic });
+        } catch (error) {
+            return res.status(400).json({ message: error.message });
+        }
+    }
+
     // Récupérer tous les mécaniciens
     async getAll(req, res) {
         try {

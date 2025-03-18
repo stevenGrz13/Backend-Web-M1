@@ -6,6 +6,19 @@ class MechanicService extends CrudService {
         super(Mechanic);
     }
 
+    async getNbrMechanics() {
+        try {
+            console.log("==========================");
+            console.log("ATO AM ISY");
+            console.log("==========================");
+            const nbr = await Mechanic.find();
+            return nbr.length;
+            
+        } catch (error) {
+            throw new Error("Erreur lors de la récupération des mécaniciens: " + error.message);
+        }
+    }
+
     // Création d'un mécanicien
     async create(mechanicData) {
         try {
@@ -19,6 +32,9 @@ class MechanicService extends CrudService {
     // Récupérer un mécanicien par ID
     async getById(id) {
         try {
+            console.log("==========================");
+            console.log("ATO AM TSISY");
+            console.log("==========================");
             return await Mechanic.findById(id);
         } catch (error) {
             throw new Error("Erreur lors de la récupération du mécanicien: " + error.message);

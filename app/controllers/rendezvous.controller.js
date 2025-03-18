@@ -14,6 +14,24 @@ const creerRendezVous = async (req, res) => {
     }
 };
 
+const getNombreRdv = async (req, res) => {
+    try {
+        const rendezVous = await RendezVousService.findAll();
+        res.json({ value : rendezVous.length });
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
+const getAllRdv = async (req, res) => {
+    try {
+        const rendezVous = await RendezVousService.findAll();
+        res.json({ liste : rendezVous });
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
 const getRendezVousParClient = async (req, res) => {
     try {
         const { clientId } = req.params;
@@ -34,4 +52,4 @@ const annulerRendezVous = async (req, res) => {
     }
 };
 
-module.exports = { creerRendezVous, getRendezVousParClient, annulerRendezVous };
+module.exports = { creerRendezVous, getRendezVousParClient, annulerRendezVous, getNombreRdv, getAllRdv };

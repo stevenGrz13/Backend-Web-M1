@@ -5,8 +5,10 @@ const mechanicController = require('../controllers/mechanic.controller');
 const authMiddleware = require('../../middleware/auth');
 
 router.post('/', mechanicController.create);
+router.get('/getNbrMechanics', mechanicController.getNbrMechanic);
 router.get('/:id', mechanicController.getById);
 router.get('/', mechanicController.getAll);
+// router.get('/getNbrMechanics', mechanicController.getNbrMechanic);
 router.put('/:id', mechanicController.update);
 router.delete('/:id', mechanicController.delete);
 
