@@ -23,13 +23,13 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, '../public')));
 
 // Routes
-app.use('/garage/api/clients', require('../app/routes/client.routes'));
-app.use('/garage/api/managers', require('../app/routes/manager.routes'));
 app.use('/garage/api/users', require('../app/routes/user.routes'));
-app.use('/garage/api/mechanics', require('../app/routes/mechanic.routes'));
 app.use('/garage/api/vehicles', require('../app/routes/vehicle.routes'));
 app.use('/garage/api/rendezvous', require('../app/routes/rendezvous.routes'));
 app.use('/garage/api/piece', require('../app/routes/piece.routes'));
+app.use('/garage/api/services', require('../app/routes/services.routes'));
+app.use('/garage/api/interventions', require('../app/routes/intervention.routes'));
+app.use('/garage/api/factures', require('../app/routes/facture.routes'));
 
 mongoose.connect(process.env.MONGO_URI)
     .then(() => logger.info("database connected"))

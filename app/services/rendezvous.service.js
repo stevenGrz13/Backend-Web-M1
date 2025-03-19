@@ -1,5 +1,5 @@
 const RendezVous = require('../models/rendezvous.model');
-const Client = require('../models/client.model');
+const Client = require('../models/user.model');
 
 class RendezVousService {
     async findAll() {

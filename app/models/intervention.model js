@@ -1,9 +1,0 @@
-const mongoose = require('mongoose');
-
-const interventionSchema = new mongoose.Schema({
-    rendezVousId: { type: mongoose.Schema.Types.ObjectId, ref: 'RendezVous', required: true },
-    intervention: { type: String, required: true },
-    sousInterventions: [{ type: mongoose.Schema.Types.ObjectId, ref: 'SousIntervention' }] // Références vers les sous-interventions
-}, { timestamps: true });
-
-module.exports = mongoose.model('Intervention', interventionSchema);
