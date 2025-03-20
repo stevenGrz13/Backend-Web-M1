@@ -8,7 +8,7 @@ class CrudController {
 
     async create(req, res, next) {
         try {
-            const document = await this.service.create(req.body);
+            const document = await this.service.create(req.body); // Il dit qu'il y a une erreur ici
             logger.info(`entité créé avec succès`);
             res.status(201).json(document);
         } catch (err) {

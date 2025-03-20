@@ -24,6 +24,26 @@ exports.getInterventions = async () => {
     return Intervention.find().populate('rendezVousId services.serviceId pieces.pieceId');
 };
 
+exports.getInterventionById = async (id) => {
+    logger.info('Récupération de toutes les interventions');
+    return Intervention.find({ where : { _id_ : id } }).populate('rendezVousId services.serviceId pieces.pieceId');
+};
+
+exports.getNumberOfIntervention = async () => {
+    var listeencours = await Intervention.find({ status: "en cours" });
+    var listefacturee = await Intervention.find({ status: "facturee" });
+    var listeterminee = await Intervention.find({ status: "terminee" });
+
+    logger.info('Récupération de toutes les interventions');
+
+    return { 
+        encours: listeencours.length || 0, 
+        facturee: listefacturee.length || 0, 
+        terminee: listeterminee.length || 0
+    };
+};
+
+
 // Mettre à jour une intervention
 exports.updateIntervention = async (id, interventionData) => {
     logger.info(`Mise à jour de l'intervention avec ID: ${id}`);

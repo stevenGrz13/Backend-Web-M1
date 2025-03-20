@@ -3,7 +3,7 @@ const logger = require('../../utils/logger');
 
 exports.findEmptyPiece = async (articleData) => {
     logger.info(`Création d'une pièce avec les données: ${JSON.stringify(articleData)}`);
-    const liste = await Piece.find({ where : { quantite : 0 } });
+    const liste = await Piece.find({quantite : 0});
     return {
         liste : liste,
         nombre : liste.length

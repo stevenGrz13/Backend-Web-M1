@@ -1,16 +1,53 @@
-// src/components/user/services/user.service.js
-
-const CrudService = require('../core/services/crud.service');
 const User = require('../models/user.model');
+const logger = require('../../utils/logger');
 
-class UserService extends CrudService {
-    constructor() {
-        super(User);
-    }
+// Créer un utilisateur
+exports.createUser = async (userData) => {
+    logger.info(`Création d'un utilisateur avec les données: ${JSON.stringify(userData)}`);
+    const user = new User(userData);
+    return await user.save();
+};
 
-    async getByRole(role) {
-        return await this.model.find({ role });
-    }
-}
+// Créer un utilisateur
+exports.getUserById = async (userid) => {
+    logger.info(`Création d'un utilisateur avec les données: ${JSON.stringify(userData)}`);
+    const user = User.find({ where : { _id_: userid }})
+    return user;
+};
 
-module.exports = new UserService();
+// Lire tous les utilisateurs
+exports.getUsers = async () => {
+    logger.info('Récupération de tous les utilisateurs');
+    return User.find();
+};
+
+// Mettre à jour un utilisateur
+exports.updateUser = async (id, userData) => {
+    logger.info(`Mise à jour de l'utilisateur avec ID: ${id}`);
+    return User.findByIdAndUpdate(id, userData, { new: true });
+};
+
+// Supprimer un utilisateur
+exports.deleteUser = async (id) => {
+    logger.info(`Suppression de l'utilisateur avec ID: ${id}...`);
+    return User.findByIdAndDelete(id);
+};
+
+// Mecanicien
+exports.findMecanicien = async () => {
+    logger.info(`Création d'un utilisateur avec les données: ${JSON.stringify(userData)}`);
+    const user = User.find({ where : { role : "mechanic" }})
+    return user;
+};
+
+exports.findClient = async () => {
+    logger.info(`Création d'un utilisateur avec les données: ${JSON.stringify(userData)}`);
+    const user = User.find({ where : { role : "client" }})
+    return user;
+};
+
+exports.findManager = async () => {
+    logger.info(`Création d'un utilisateur avec les données: ${JSON.stringify(userData)}`);
+    const user = User.find({ where : { role : "manager" }})
+    return user;
+};

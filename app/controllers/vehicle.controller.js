@@ -32,6 +32,19 @@ class VehicleController extends CrudController {
         }
     }
 
+    // Récupérer un véhicule par ID
+    async getAllVehicle(req, res) {
+        try {
+            const vehicle = await vehicleService.getAll();
+            if (!vehicle) {
+                return res.status(404).json({ message: "Erreur lors de la recuperation des vehicules" });
+            }
+            return res.status(200).json(vehicle);
+        } catch (error) {
+            return res.status(400).json({ message: error.message });
+        }
+    }
+
     // Récupérer tous les véhicules d'un client
     async getByClientId(req, res) {
         try {

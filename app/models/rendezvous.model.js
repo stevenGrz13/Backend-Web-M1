@@ -22,7 +22,12 @@ const RendezVousSchema = new mongoose.Schema(
       default: "en attente",
     },
     services: [{ type: mongoose.Schema.Types.ObjectId, ref: "Service" }],
-    pieces: [{ type: mongoose.Schema.Types.ObjectId, ref: "Piece" }],
+    pieces: [
+      {
+        piece: { type: mongoose.Schema.Types.ObjectId, ref: "Piece" },
+        quantite: { type: Number, required: true, default: 1 }, // Nombre de pièces
+      },
+    ],
   },
   { timestamps: true }
 );

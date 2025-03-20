@@ -9,6 +9,15 @@ exports.createIntervention = async (req, res) => {
     }
 };
 
+exports.getNumbersOfInterventions = async (req, res) => {
+    try {
+        const interventions = await interventionService.getNumberOfIntervention();
+        res.status(200).json(interventions);
+    } catch (error) {
+        res.status(500).json({ message: "Erreur lors de la récupération des interventions", error: error.message });
+    }
+};
+
 exports.getInterventions = async (req, res) => {
     try {
         const interventions = await interventionService.getInterventions();
