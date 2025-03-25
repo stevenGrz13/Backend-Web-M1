@@ -11,7 +11,7 @@ exports.createUser = async (userData) => {
 // Créer un utilisateur
 exports.getUserById = async (userid) => {
     logger.info(`Création d'un utilisateur avec les données: ${JSON.stringify(userData)}`);
-    const user = User.find({ where : { _id_: userid }})
+    const user = User.find({ _id: userid })
     return user;
 };
 
@@ -36,18 +36,33 @@ exports.deleteUser = async (id) => {
 // Mecanicien
 exports.findMecanicien = async () => {
     logger.info(`Création d'un utilisateur avec les données: ${JSON.stringify(userData)}`);
-    const user = User.find({ where : { role : "mechanic" }})
+    const user = User.find({ where : { role : "67e2f4328ce2be6850d4083d" }})
     return user;
+};
+
+exports.findNombreMecanicien = async () => {
+    const user = await User.find({ where : { roleId : "67e2f4328ce2be6850d4083d" }})
+    return { nombreMecanicien : user.length };
 };
 
 exports.findClient = async () => {
     logger.info(`Création d'un utilisateur avec les données: ${JSON.stringify(userData)}`);
-    const user = User.find({ where : { role : "client" }})
+    const user = User.find({ role : "client" })
     return user;
 };
 
 exports.findManager = async () => {
     logger.info(`Création d'un utilisateur avec les données: ${JSON.stringify(userData)}`);
-    const user = User.find({ where : { role : "manager" }})
+    const user = User.find({ role : "manager" })
     return user;
+};
+
+exports.findManager = async () => {
+    logger.info(`Création d'un utilisateur avec les données: ${JSON.stringify(userData)}`);
+    const user = User.find({ role : "manager" })
+    return user;
+};
+
+exports.LogIn = async (email, password, roleId) => {
+    return await User.findOne({ email, password, roleId });
 };

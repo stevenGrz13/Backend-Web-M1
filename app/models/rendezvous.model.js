@@ -13,7 +13,6 @@ const RendezVousSchema = new mongoose.Schema(
       required: true,
     },
     date: { type: Date, required: true },
-    heure: { type: String, required: true },
     description: { type: String },
     vehiculeId: { type: mongoose.Schema.Types.ObjectId, ref: "Vehicle" },
     statut: {
@@ -21,7 +20,15 @@ const RendezVousSchema = new mongoose.Schema(
       enum: ["en attente", "confirmé", "annulé"],
       default: "en attente",
     },
-    services: [{ type: mongoose.Schema.Types.ObjectId, ref: "Service" }],
+    services: [
+          {
+            serviceId: {
+              type: mongoose.Schema.Types.ObjectId,
+              ref: "Service",
+              required: true,
+            }
+          },
+        ],
     pieces: [
       {
         piece: { type: mongoose.Schema.Types.ObjectId, ref: "Piece" },

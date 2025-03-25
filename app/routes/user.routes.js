@@ -12,9 +12,13 @@ const authMiddleware = require('../../middleware/auth');
 // router.delete('/:id', authMiddleware, userController.delete);
 
 router.post('/', userController.createUser);
+router.get('/nombremecanicien', userController.getNombreMecanicien);
 router.get('/:id', userController.getUserById);
 router.get('/', userController.getUsers);
 router.put('/:id', userController.updateUser);
 router.delete('/:id', userController.deleteUser);
+
+// IDENTIFICATION
+router.post('/login', userController.LogIn);
 
 module.exports = router;

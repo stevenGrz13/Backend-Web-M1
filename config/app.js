@@ -30,6 +30,7 @@ app.use('/garage/api/piece', require('../app/routes/piece.routes'));
 app.use('/garage/api/services', require('../app/routes/services.routes'));
 app.use('/garage/api/interventions', require('../app/routes/intervention.routes'));
 app.use('/garage/api/factures', require('../app/routes/facture.routes'));
+app.use('/garage/api/roles', require('../app/routes/role.routes'));
 
 mongoose.connect(process.env.MONGO_URI)
     .then(() => logger.info("database connected"))

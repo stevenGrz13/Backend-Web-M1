@@ -13,7 +13,6 @@ const FactureSchema = new mongoose.Schema(
       required: true,
     },
     date: { type: Date, required: true },
-    heure: { type: String, required: true },
     vehiculeId: { type: mongoose.Schema.Types.ObjectId, ref: "Vehicle" },
     services: [
       {
@@ -22,7 +21,13 @@ const FactureSchema = new mongoose.Schema(
           ref: "Service",
           required: true,
         },
-        prix: { type: Number, required: true, min: 0 },
+        prix: {
+          type: Number,
+          required: true,
+          min: 0,
+          get: (value) => value.toFixed(2),
+          set: (value) => parseFloat(value).toFixed(2),
+        },
         etat: { type: String, enum: ["en cours", "fini"], default: "en cours" }, // État du service
       },
     ],
@@ -35,9 +40,13 @@ const FactureSchema = new mongoose.Schema(
           required: true,
         },
         quantite: { type: Number, required: true, min: 1 }, // Quantité utilisée
-        prix: { type: Number, required: true, min: 0,
-            get: (value) => value.toFixed(2),  
-            set: (value) => parseFloat(value).toFixed(2) },
+        prix: {
+          type: Number,
+          required: true,
+          min: 0,
+          get: (value) => value.toFixed(2),
+          set: (value) => parseFloat(value).toFixed(2),
+        },
       },
     ],
 
@@ -50,8 +59,8 @@ const FactureSchema = new mongoose.Schema(
     total: {
       type: Number, // comment faire pour que ceci soit deux chiffres apres virgules?
       default: 0,
-      get: (value) => value.toFixed(2),  
-      set: (value) => parseFloat(value).toFixed(2)
+      get: (value) => value.toFixed(2),
+      set: (value) => parseFloat(value).toFixed(2),
     },
   },
   { timestamps: true }

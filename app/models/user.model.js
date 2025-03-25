@@ -7,11 +7,7 @@ const userSchema = new mongoose.Schema(
     firstName: { type: String, required: true },
     email: { type: String, required: true },
     password: { type: String, required: true },
-    role: {
-      type: String,
-      enum: ["client", "mechanic", "manager"],
-      required: true,
-    },
+    roleId: { type: mongoose.Schema.Types.ObjectId, ref: "Role", required: true, },
   },
   { timestamps: true }
 );
