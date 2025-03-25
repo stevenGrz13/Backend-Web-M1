@@ -36,12 +36,12 @@ exports.deleteUser = async (id) => {
 // Mecanicien
 exports.findMecanicien = async () => {
     logger.info(`Création d'un utilisateur avec les données: ${JSON.stringify(userData)}`);
-    const user = User.find({ where : { role : "67e2f4328ce2be6850d4083d" }})
+    const user = User.find({ role : "67e2f4328ce2be6850d4083d" })
     return user;
 };
 
 exports.findNombreMecanicien = async () => {
-    const user = await User.find({ where : { roleId : "67e2f4328ce2be6850d4083d" }})
+    const user = await User.find({ roleId : "67e2f4328ce2be6850d4083d" })
     return { nombreMecanicien : user.length };
 };
 
