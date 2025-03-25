@@ -26,7 +26,7 @@ exports.getInterventions = async () => {
 
 exports.getInterventionById = async (id) => {
     logger.info('Récupération de toutes les interventions');
-    return Intervention.find({ where : { _id_ : id } }).populate('rendezVousId services.serviceId pieces.pieceId');
+    return Intervention.find({ _id : id }).populate('rendezVousId services.serviceId pieces.pieceId');
 };
 
 exports.getNumberOfIntervention = async () => {

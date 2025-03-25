@@ -3,7 +3,7 @@ const logger = require('../../utils/logger');
 
 exports.findEmptyFacture = async (factureData) => {
     logger.info(`Création d'une facture avec les données: ${JSON.stringify(factureData)}`);
-    const liste = await Facture.find({ where: { quantite: 0 } });
+    const liste = await Facture.find({ quantite: 0 });
     return {
         liste: liste,
         nombre: liste.length
