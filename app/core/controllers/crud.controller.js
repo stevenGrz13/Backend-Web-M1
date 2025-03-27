@@ -1,63 +1,86 @@
 // src/components/core/controllers/crud.controller.js
 const logger = require("../../../utils/logger");
+const ApiResponse = require("../../core/response.model");
 
 class CrudController {
-    constructor(service) {
-        this.service = service;
-    }
+  constructor(service) {
+    this.service = service;
+  }
 
-    async create(req, res, next) {
-        try {
-            const document = await this.service.create(req.body); // Il dit qu'il y a une erreur ici
-            logger.info(`entité créé avec succès`);
-            res.status(201).json(document);
-        } catch (err) {
-            next(err);
-            logger.error(`Erreur lors du création : ${error.message}`);
-            res.status(400).json({ message: error.message });
-        }
+  async create(req, res, next) {
+    try {
+      const document = await this.service.create(req.body); // Il dit qu'il y a une erreur ici
+      logger.info(`entité créé avec succès`);
+      new ApiResponse(201, document, "Document created successfully").send(res);
+    } catch (err) {
+      next(err);
+      new ApiResponse(400, null, "Error during creation").send(res);
     }
+  }
 
-    async getById(req, res, next) {
-        try {
-            const document = await this.service.getById(req.params.id);
-            if (!document) throw new Error('Document not found');
-            res.status(200).json(document);
-        } catch (err) {
-            next(err);
-        }
+  async getById(req, res, next) {
+    try {
+      const document = await this.service.getById(req.params.id);
+      if (!document) throw new Error("Document not found");
+      new ApiResponse(201, document, "Get Document successfully").send(res);
+    } catch (err) {
+      next(err);
+      new ApiResponse(500, null, "Error during Get Document").send(res);
     }
+  }
 
-    async getAll(req, res, next) {
-        try {
-            const documents = await this.service.getAll(req.query);
-            res.status(200).json(documents);
-        } catch (err) {
-            next(err);
-        }
+  async getAll(req, res, next) {
+    try {
+      const documents = await this.service.getAll(req.query);
+      new ApiResponse(200, documents, "Documents retrieved successfully").send(
+        res
+      );
+    } catch (err) {
+      next(err);
+      new ApiResponse(500, null, "Error during get all").send(res);
     }
+  }
 
-    async update(req, res, next) {
-        try {
-            const document = await this.service.update(req.params.id, req.body);
-            if (!document) throw new Error('Document not found');
-            res.status(200).json(document);
-        } catch (err) {
-            next(err);
-        }
+  async getAllPaginate(req, res, next) {
+    try {
+      const { page = 1, limit = 10 } = req.query;
+      const { data, pagination } = await this.service.getAllPaginate({
+        page,
+        limit,
+      });
+      ApiResponse.paginate(
+        res,
+        data,
+        pagination,
+        "Documents retrieved successfully"
+      );
+    } catch (err) {
+      next(err);
+      new ApiResponse(500, null, "Error during get All Paginate").send(res);
     }
+  }
 
-    async delete(req, res, next) {
-        try {
-            const document = await this.service.delete(req.params.id);
-            if (!document) throw new Error('Document not found');
-            res.status(200).json({ message: 'Document deleted successfully' });
-        } catch (err) {
-            next(err);
-            logger.error(`Erreur lors de la suppression de cette entité: ${error.message}`);
-            res.status(500).json({ message: error.message });
-        }
+  async update(req, res, next) {
+    try {
+      const document = await this.service.update(req.params.id, req.body);
+      if (!document) throw new Error("Document not found");
+      new ApiResponse(200, document, "Document updated successfully").send(res);
+    } catch (err) {
+      next(err);
+      new ApiResponse(500, null, "Error during Update Document").send(res);
     }
+  }
+
+  async delete(req, res, next) {
+    try {
+      const document = await this.service.delete(req.params.id);
+      if (!document) throw new Error("Document not found");
+      new ApiResponse(201, document, "Document deleted successfully").send(res);
+    } catch (err) {
+      next(err);
+      new ApiResponse(500, null, "Error during deleting document").send(res);
+    }
+  }
 }
 
 module.exports = CrudController;

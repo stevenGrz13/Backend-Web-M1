@@ -21,14 +21,14 @@ const RendezVousSchema = new mongoose.Schema(
       default: "en attente",
     },
     services: [
-          {
-            serviceId: {
-              type: mongoose.Schema.Types.ObjectId,
-              ref: "Service",
-              required: true,
-            }
-          },
-        ],
+      {
+        serviceId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Service",
+          required: true,
+        },
+      },
+    ],
     pieces: [
       {
         piece: { type: mongoose.Schema.Types.ObjectId, ref: "Piece" },

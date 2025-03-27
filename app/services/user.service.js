@@ -1,68 +1,29 @@
-const User = require('../models/user.model');
-const logger = require('../../utils/logger');
+const User = require("../models/user.model");
+const CrudService = require("../core/services/crud.service");
+const roleService = require("../services/role.service");
 
-// Créer un utilisateur
-exports.createUser = async (userData) => {
-    logger.info(`Création d'un utilisateur avec les données: ${JSON.stringify(userData)}`);
-    const user = new User(userData);
-    return await user.save();
-};
+class UserService extends CrudService{
+  constructor(){
+    super(User);
+  }
 
-// Créer un utilisateur
-exports.getUserById = async (userid) => {
-    logger.info(`Création d'un utilisateur avec les données: ${JSON.stringify(userData)}`);
-    const user = User.find({ _id: userid })
+  async findNombreByRole(role) {
+    const user = await roleService.findRole(role);
+    console.log('user',user);
+    return { nombre: user.length };
+  };
+
+  async LogIn(email, password, roleId) {
+    if (!email || !password || !roleId) {
+      throw new Error("Tous les champs sont requis.");
+    }
+    const user = await User.findOne({ email, password, roleId });
+    if (!user) {
+      throw new Error("Aucun utilisateur trouvé avec ces informations.");
+    }
     return user;
-};
+  };
+  
+}
 
-// Lire tous les utilisateurs
-exports.getUsers = async () => {
-    logger.info('Récupération de tous les utilisateurs');
-    return User.find();
-};
-
-// Mettre à jour un utilisateur
-exports.updateUser = async (id, userData) => {
-    logger.info(`Mise à jour de l'utilisateur avec ID: ${id}`);
-    return User.findByIdAndUpdate(id, userData, { new: true });
-};
-
-// Supprimer un utilisateur
-exports.deleteUser = async (id) => {
-    logger.info(`Suppression de l'utilisateur avec ID: ${id}...`);
-    return User.findByIdAndDelete(id);
-};
-
-// Mecanicien
-exports.findMecanicien = async () => {
-    logger.info(`Création d'un utilisateur avec les données: ${JSON.stringify(userData)}`);
-    const user = User.find({ role : "67e2f4328ce2be6850d4083d" })
-    return user;
-};
-
-exports.findNombreMecanicien = async () => {
-    const user = await User.find({ roleId : "67e2f4328ce2be6850d4083d" })
-    return { nombreMecanicien : user.length };
-};
-
-exports.findClient = async () => {
-    logger.info(`Création d'un utilisateur avec les données: ${JSON.stringify(userData)}`);
-    const user = User.find({ role : "client" })
-    return user;
-};
-
-exports.findManager = async () => {
-    logger.info(`Création d'un utilisateur avec les données: ${JSON.stringify(userData)}`);
-    const user = User.find({ role : "manager" })
-    return user;
-};
-
-exports.findManager = async () => {
-    logger.info(`Création d'un utilisateur avec les données: ${JSON.stringify(userData)}`);
-    const user = User.find({ role : "manager" })
-    return user;
-};
-
-exports.LogIn = async (email, password, roleId) => {
-    return await User.findOne({ email, password, roleId });
-};
+module.exports = new UserService();
