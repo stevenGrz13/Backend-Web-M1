@@ -1,5 +1,6 @@
 const serviceService = require('../services/services.service');
 const CrudController = require("../core/controllers/crud.controller");
+const ApiResponse = require("../core/response.model");
 
 class ServiceController extends CrudController {
     constructor() {
@@ -18,18 +19,19 @@ class ServiceController extends CrudController {
     async createService(req, res) {
         try {
             const service = await serviceService.createService(req.body);
-            res.status(201).json(service);
+            new ApiResponse(201, service, "Service created successfully").send(res);
         } catch (error) {
-            res.status(500).json({ message: "Erreur lors de la création du service", error: error.message });
+            new ApiResponse(500, null, error.message).send(res);
         }
     }
 
     async getServices(req, res) {
         try {
-            const services = await serviceService.getServices();
-            res.status(200).json(services);
+            const { page = 1, limit = 10 } = req.query;
+            const { services, pagination } = await serviceService.getServices({ page, limit });
+            ApiResponse.paginate(res, services, pagination, "Services retrieved successfully");
         } catch (error) {
-            res.status(500).json({ message: "Erreur lors de la récupération des services", error: error.message });
+            new ApiResponse(500, null, error.message).send(res);
         }
     }
 

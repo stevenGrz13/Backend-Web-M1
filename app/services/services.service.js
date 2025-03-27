@@ -18,9 +18,33 @@ exports.createService = async (articleData) => {
 };
 
 // Lire tous les services
-exports.getServices = async () => {
-    logger.info('Récupération de tous les services');
-    return Service.find();
+exports.getServices = async ({ page = 1, limit = 10 }) => {
+
+    const skip = (page - 1) * limit;
+
+    const [services, total] = await Promise.all([
+        Service.find().skip(skip).limit(limit),
+        Service.countDocuments()
+    ]);
+
+    const totalPages = Math.ceil(total / limit);
+    const hasNext = page < totalPages;
+    const hasPrev = page > 1;
+
+    const data = {
+        services,
+        pagination: {
+            total,
+            totalPages,
+            currentPage: page,
+            hasNext,
+            hasPrev,
+            limit
+        }
+    };
+    logger.info(`Récupération de tous les services, ${data}`);
+
+    return data
 };
 
 // Mettre à jour un service
