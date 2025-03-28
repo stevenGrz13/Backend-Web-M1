@@ -12,10 +12,7 @@ class UserController extends CrudController {
       const users = await userService.findNombreByRole(RoleType.MECHANIC);
       new ApiResponse(200, users, "Document got successfully").send(res);
     } catch (error) {
-      res.status(500).json({
-        message: "Erreur lors de la récupération des utilisateurs",
-        error: error.message,
-      });
+      new ApiResponse(500, null, "Erreur lors de la récupération des mecaniciens").send(res);
     }
   }
 
@@ -38,10 +35,7 @@ class UserController extends CrudController {
 
       return res.status(200).json(userWithoutPassword);
     } catch (error) {
-      return res.status(500).json({
-        message: "Erreur lors de l'identification",
-        error: error.message,
-      });
+      new ApiResponse(500, null, "Erreur lors de lu login").send(res);
     }
   }
 }
