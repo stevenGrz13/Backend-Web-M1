@@ -3,12 +3,12 @@ const router = express.Router();
 const interventionController = require('../controllers/intervention.controller');
 
 // Routes pour les interventions
-router.post('/', interventionController.createIntervention);
-router.get('/', interventionController.getInterventions);
+router.post('/', interventionController.create.bind(interventionController));
+router.get('/', interventionController.getAllPaginate.bind(interventionController));
 router.get('/interventionNumber', interventionController.getNumbersOfInterventions);
 router.get('/interventionEnCours', interventionController.findOngoingInterventions);
-router.get('/:id', interventionController.getInterventionById);
-router.put('/:id', interventionController.updateIntervention);
-router.delete('/:id', interventionController.deleteIntervention);
+router.get('/:id', interventionController.getById.bind(interventionController));
+router.put('/:id', interventionController.update.bind(interventionController));
+router.delete('/:id', interventionController.delete.bind(interventionController));
 
 module.exports = router;
