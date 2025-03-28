@@ -1,50 +1,82 @@
-const RendezVousService = require('../services/rendezvous.service');
+const CrudController = require("../core/controllers/crud.controller");
+const ApiResponse = require("../core/response.model");
+const RendezVousService = require("../services/rendezvous.service");
 
-const creerRendezVous = async (req, res) => {
+class RendezVousController extends CrudController {
+  constructor() {
+    super(RendezVousService);
+  }
+
+  async getNombreRdv(req, res) {
     try {
-        const rendezVous = await RendezVousService.creerRendezVous(req.body);
-        res.status(201).json({ message: "Rendez-vous créé avec succès", rendezVous });
+      const rendezVous = await RendezVousService.getAll();
+      new ApiResponse(
+        200,
+        rendezVous.length,
+        "Recuperation du nombre de RDV avec succes"
+      ).send(res);
     } catch (error) {
-        res.status(400).json({ message: error.message });
+      new ApiResponse(
+        500,
+        null,
+        "Erreur lors de la récupération du nombre des Rendez Vous"
+      ).send(res);
     }
-};
+  }
 
-const getNombreRdv = async (req, res) => {
+  async getRendezVousParClient(req, res) {
     try {
-        const rendezVous = await RendezVousService.findAll();
-        res.json({ nombre : rendezVous.length || 0});
+      const { clientId } = req.params;
+      const rendezVous = await RendezVousService.getRendezVousParClient(
+        clientId
+      );
+      new ApiResponse(200, rendezVous, "Recuperation des RDV par client").send(
+        res
+      );
     } catch (error) {
-        res.status(400).json({ message: error.message });
+      new ApiResponse(
+        500,
+        null,
+        "Erreur lors de la récupération des Rendez Vous par Client"
+      ).send(res);
     }
-};
+  }
 
-const getAllRdv = async (req, res) => {
+  async getRendezVousParMecanicien(req, res) {
     try {
-        const rendezVous = await RendezVousService.findAll();
-        res.json({ liste : rendezVous });
+      const { mechanicienId } = req.params;
+      const rendezVous = await RendezVousService.getRendezVousParMecanicien(
+        mechanicienId
+      );
+      new ApiResponse(
+        200,
+        rendezVous,
+        "Recuperation des rendez vous par mecanicien"
+      ).send(res);
     } catch (error) {
-        res.status(400).json({ message: error.message });
+      new ApiResponse(
+        500,
+        null,
+        "Erreur lors de la récupération des Rendez Vous par Client"
+      ).send(res);
     }
-};
+  }
 
-const getRendezVousParClient = async (req, res) => {
+  async annulerRendezVous(req, res) {
     try {
-        const { clientId } = req.params;
-        const rendezVous = await RendezVousService.getRendezVousParClient(clientId);
-        res.json(rendezVous);
+      const { rendezVousId } = req.params;
+      const rendezVous = await RendezVousService.annulerRendezVous(
+        rendezVousId
+      );
+      new ApiResponse(200, rendezVous, "Annulation RDV").send(res);
     } catch (error) {
-        res.status(400).json({ message: error.message });
+      new ApiResponse(
+        500,
+        null,
+        "Erreur lors de l'annulation d'un Rendez Vous"
+      ).send(res);
     }
-};
+  }
+}
 
-const annulerRendezVous = async (req, res) => {
-    try {
-        const { rendezVousId } = req.params;
-        const rendezVous = await RendezVousService.annulerRendezVous(rendezVousId);
-        res.json({ message: "Rendez-vous annulé", rendezVous });
-    } catch (error) {
-        res.status(400).json({ message: error.message });
-    }
-};
-
-module.exports = { creerRendezVous, getRendezVousParClient, annulerRendezVous, getNombreRdv, getAllRdv };
+module.exports = new RendezVousController();

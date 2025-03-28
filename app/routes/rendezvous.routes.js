@@ -1,15 +1,16 @@
 const express = require('express');
-const { creerRendezVous, getRendezVousParClient, annulerRendezVous, getNombreRdv, getAllRdv } = require('../controllers/rendezvous.controller');
+const rendezVousController = require('../controllers/rendezvous.controller');
 
 const router = express.Router();
 
-router.post('/', creerRendezVous); // Créer un rendez-vous
-router.get('/client/:clientId', getRendezVousParClient); // Voir les rendez-vous d'un client
-router.get('/getNombreRdv', getNombreRdv); // Voir les rendez-vous d'un client
-router.get('/', getAllRdv); 
-router.get('/nombreRendezVous', getNombreRdv); 
-router.put('/:rendezVousId/annuler', annulerRendezVous); // Annuler un rendez-vous
-
-
+router.post('/', rendezVousController.create.bind(rendezVousController)); 
+router.get('/client/:clientId', rendezVousController.getRendezVousParClient); 
+router.get('/mechanic/:mechanicienId', rendezVousController.getRendezVousParMecanicien);
+router.get('/getNombreRdv', rendezVousController.getNombreRdv);
+router.get('/', rendezVousController.getAllPaginate.bind(rendezVousController)); 
+router.get('/:id', rendezVousController.getById.bind(rendezVousController)); 
+router.put('/:rendezVousId/annuler', rendezVousController.annulerRendezVous); 
+router.put('/:id', rendezVousController.update.bind(rendezVousController));
+router.delete('/:id', rendezVousController.delete.bind(rendezVousController));
 
 module.exports = router;
