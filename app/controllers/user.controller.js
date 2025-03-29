@@ -7,12 +7,31 @@ class UserController extends CrudController {
     super(userService);
   }
 
+  async getUsersByRole(req, res) {
+    try {
+      const users = await userService.findAllByRole(req.body.role);
+      new ApiResponse(200, users, "Get Users By Role Successfull").send(res);
+    } catch (error) {
+      new ApiResponse(500, null, "Erreur lors de la récupération des users by role").send(res);
+    }
+  }
+
   async getNombreMecanicien(req, res) {
     try {
       const users = await userService.findNombreByRole(RoleType.MECHANIC);
-      new ApiResponse(200, users, "Document got successfully").send(res);
+      new ApiResponse(200, users.nombre, "Document got successfully").send(res);
     } catch (error) {
       new ApiResponse(500, null, "Erreur lors de la récupération des mecaniciens").send(res);
+    }
+  }
+
+  async getMecanicienLibreByDate(req, res) {
+    try {
+      const { date } = req.body;
+      const users = await userService.findMecanicienLibreByDate(date);
+      new ApiResponse(200, users, "Mecanicien libre get avec succes").send(res);
+    } catch (error) {
+      new ApiResponse(500, null, "Erreur lors de la récupération des mecaniciens libres").send(res);
     }
   }
 

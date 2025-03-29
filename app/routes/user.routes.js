@@ -12,6 +12,8 @@ const authMiddleware = require('../../middleware/auth');
 // router.delete('/:id', authMiddleware, userController.delete);
 
 router.get('/nombremecanicien', userController.getNombreMecanicien);
+router.post('/mecanicienlibrebydate', userController.getMecanicienLibreByDate);
+router.post('/allbyrole', userController.getUsersByRole);
 router.post('/', userController.create.bind(userController));
 router.get('/', userController.getAllPaginate.bind(userController));
 router.get('/:id', userController.getById.bind(userController));

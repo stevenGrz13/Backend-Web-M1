@@ -6,6 +6,18 @@ class RendezVousService extends CrudService {
     super(RendezVous);
   }
 
+  async findRendezVousByDate(date){
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
+    return await RendezVous.find({
+      date: { $gte: startOfDay, $lte: endOfDay },
+    })
+    .populate("services.serviceId");
+  }
+
   async getRendezVousParClient(clientId) {
     return await RendezVous.find({ userClientId: clientId }).populate(
       "userClientId",
