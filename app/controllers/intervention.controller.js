@@ -105,13 +105,17 @@ class InterventionController extends CrudController {
 
   async finalizeIntervention(req, res, next) {
     try {
+      console.log('voici interventionId');
+      console.log('=======================================');
+      console.log(req.params.interventionId);
+      console.log('=======================================');
       const intervention = await interventionService.finalizeIntervention(
-        req.params.id
+        req.params.interventionId
       );
       new ApiResponse(
         200,
         intervention,
-        "Intervention finalisée avec succès"
+        "Intervention finalisée et generation du facture avec succès "
       ).send(res);
     } catch (error) {
       new ApiResponse(

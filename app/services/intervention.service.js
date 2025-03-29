@@ -1,7 +1,7 @@
 const Intervention = require("../models/intervention.model");
 const logger = require("../../utils/logger");
 const CrudService = require("../core/services/crud.service");
-
+const factureService = require("../services/facture.service");
 class InterventionService extends CrudService {
   constructor() {
     super(Intervention);
@@ -76,11 +76,11 @@ class InterventionService extends CrudService {
 
   async finalizeIntervention(id) {
     logger.info(`Finalisation de l'intervention avec ID: ${id}`);
-    return Intervention.findByIdAndUpdate(
-      id,
-      { status: "terminee" },
-      { new: true }
-    ).populate("rendezVousId services.serviceId pieces.pieceId");
+    const facture = await factureService.genererFacture(id);
+    let intervention = await Intervention.findById(id);
+    const result = await Intervention.updateOne({ _id: id }, { $set: { status : "terminee"  } });
+    intervention = result;
+    return { intervention, facture }
   }
 }
 
