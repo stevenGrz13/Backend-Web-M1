@@ -77,6 +77,22 @@ class RendezVousController extends CrudController {
       ).send(res);
     }
   }
+
+  async confirmerRendezVous(req, res) {
+    try {
+      const { rendezVousId } = req.params;
+      const rendezVous = await RendezVousService.confirmerRendezVous(
+        rendezVousId
+      );
+      new ApiResponse(200, rendezVous, "Confirmation RDV").send(res);
+    } catch (error) {
+      new ApiResponse(
+        500,
+        null,
+        "Erreur lors de l'annulation d'un Rendez Vous"
+      ).send(res);
+    }
+  }
 }
 
 module.exports = new RendezVousController();

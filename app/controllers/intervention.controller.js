@@ -7,6 +7,23 @@ class InterventionController extends CrudController {
     super(interventionService);
   }
 
+  async getInterventionByClientId(req, res, next) {
+    try {
+      const interventions = await interventionService.findInterventionByClientId(req.params.ClientId);
+      new ApiResponse(
+        200,
+        interventions,
+        "Recuperation des Interventions par client ID avec succes"
+      ).send(res);
+    } catch (error) {
+      new ApiResponse(
+        500,
+        null,
+        "Erreur lors de la Recuperation des Interventions par client ID"
+      ).send(res);
+    }
+  }
+
   async getNumbersOfInterventions(req, res, next) {
     try {
       const interventions = await interventionService.getNumberOfIntervention();

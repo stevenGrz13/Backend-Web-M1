@@ -7,6 +7,32 @@ class InterventionService extends CrudService {
     super(Intervention);
   }
 
+  async findInterventionByClientId(ClientId) {
+    try {
+      const interventions = await Intervention.find()
+        .populate({
+          path: "rendezVousId",
+          match: { userClientId: ClientId },
+          select:
+            "userClientId date description vehiculeId services pieces statut",
+        })
+        .populate("services.serviceId", "nom prix")
+        .populate("pieces.pieceId", "nom reference");
+
+      const filteredInterventions = interventions.filter(
+        (intervention) => intervention.rendezVousId
+      );
+
+      return filteredInterventions;
+    } catch (error) {
+      logger.error(
+        "Erreur lors de la récupération des interventions du client:",
+        error
+      );
+      throw new Error("Impossible de récupérer les interventions.");
+    }
+  }
+
   async getNumberOfIntervention() {
     logger.info("Recherche des interventions en cours...");
     const liste = await Intervention.find({ status: "en cours" });

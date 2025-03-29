@@ -6,6 +6,7 @@ const interventionController = require('../controllers/intervention.controller')
 router.post('/', interventionController.create.bind(interventionController));
 router.get('/', interventionController.getAllPaginate.bind(interventionController));
 router.get('/interventionNumber', interventionController.getNumbersOfInterventions);
+router.get('/interventionByClientId/:ClientId', interventionController.getInterventionByClientId);
 router.get('/interventionEnCours', interventionController.findOngoingInterventions);
 router.get('/:id', interventionController.getById.bind(interventionController));
 router.put('/:id', interventionController.update.bind(interventionController));

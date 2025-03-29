@@ -9,7 +9,8 @@ router.get('/mechanic/:mechanicienId', rendezVousController.getRendezVousParMeca
 router.get('/getNombreRdv', rendezVousController.getNombreRdv);
 router.get('/', rendezVousController.getAllPaginate.bind(rendezVousController)); 
 router.get('/:id', rendezVousController.getById.bind(rendezVousController)); 
-router.put('/:rendezVousId/annuler', rendezVousController.annulerRendezVous); 
+router.put('/annuler/:rendezVousId', rendezVousController.annulerRendezVous); 
+router.post('/confirmer/:rendezVousId', rendezVousController.confirmerRendezVous); 
 router.put('/:id', rendezVousController.update.bind(rendezVousController));
 router.delete('/:id', rendezVousController.delete.bind(rendezVousController));
 
