@@ -3,7 +3,7 @@ const rendezVousController = require('../controllers/rendezvous.controller');
 
 const router = express.Router();
 
-router.post('/', rendezVousController.create.bind(rendezVousController)); 
+router.post('/', rendezVousController.genererRendezVousAvecSuggestion); 
 router.get('/client/:clientId', rendezVousController.getRendezVousParClient); 
 router.get('/mechanic/:mechanicienId', rendezVousController.getRendezVousParMecanicien);
 router.get('/getNombreRdv', rendezVousController.getNombreRdv);

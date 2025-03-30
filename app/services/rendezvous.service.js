@@ -6,7 +6,7 @@ class RendezVousService extends CrudService {
     super(RendezVous);
   }
 
-  async findRendezVousByDate(date){
+  async findRendezVousByDate(date) {
     const startOfDay = new Date(date);
     startOfDay.setHours(0, 0, 0, 0);
 
@@ -14,8 +14,7 @@ class RendezVousService extends CrudService {
     endOfDay.setHours(23, 59, 59, 999);
     return await RendezVous.find({
       date: { $gte: startOfDay, $lte: endOfDay },
-    })
-    .populate("services.serviceId");
+    }).populate("services.serviceId");
   }
 
   async getRendezVousParClient(clientId) {
@@ -26,10 +25,9 @@ class RendezVousService extends CrudService {
   }
 
   async getRendezVousParMecanicien(mecanicienId) {
-    const value = await RendezVous.find({ userMecanicientId: mecanicienId }).populate(
-      "userMecanicientId",
-      "nom prenom courriel"
-    );
+    const value = await RendezVous.find({
+      userMecanicientId: mecanicienId,
+    }).populate("userMecanicientId", "nom prenom courriel");
     return value;
   }
 
@@ -46,7 +44,9 @@ class RendezVousService extends CrudService {
       rendezVousId,
       { statut: "confirmé" },
       { new: true }
-    ).populate("services.serviceId").populate("pieces.piece");
+    )
+      .populate("services.serviceId")
+      .populate("pieces.piece");
 
     if (!confirmationRendezvous) {
       throw new Error("Rendez-vous non trouvé");
@@ -68,6 +68,22 @@ class RendezVousService extends CrudService {
     await intervention.save();
 
     return { confirmationRendezvous, intervention };
+  }
+
+  async genererRendezVousAvecSuggestion(data) {
+    const userService = require("../services/user.service");
+    const date = data.date;
+    const mecanicienLibre = await userService.findMecanicienLibreByDate(date);
+    if(mecanicienLibre.nombre > 0){
+      var mecanicienId = mecanicienLibre.mecaniciens[0]._id;
+      data.userMecanicientId = mecanicienId.toString();
+      const rendezVous = await RendezVous.create(data);
+      return rendezVous;
+    }
+    else{
+      const message = "Aucun Mecanicien Libre pour votre Date";
+      return message;
+    }
   }
 }
 

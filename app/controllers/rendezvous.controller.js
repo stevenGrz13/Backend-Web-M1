@@ -7,6 +7,23 @@ class RendezVousController extends CrudController {
     super(RendezVousService);
   }
 
+  async genererRendezVousAvecSuggestion(req, res) {
+    try {
+      const rendezVous = await RendezVousService.genererRendezVousAvecSuggestion(req.body);
+      new ApiResponse(
+        200,
+        rendezVous,
+        "test ity"
+      ).send(res);
+    } catch (error) {
+      new ApiResponse(
+        500,
+        null,
+        "Erreur lors de la récupération du nombre des Rendez Vous"
+      ).send(res);
+    }
+  }
+
   async getNombreRdv(req, res) {
     try {
       const rendezVous = await RendezVousService.getAll();
