@@ -114,83 +114,54 @@ class InterventionService extends CrudService {
         .populate({
           path: "rendezVousId",
           populate: [
-            { path: "vehiculeId", model: "Vehicle" },
-            { path: "userClientId", model: "User", select: "name firstName" },
-            {
-              path: "userMecanicientId",
-              model: "User",
-              select: "name firstName",
-            },
+            { path: "vehiculeId", model: "Vehicle" }, // Récupère tous les champs du véhicule
+            { path: "userClientId", model: "User" },  // Récupère tous les champs du client
+            { path: "userMecanicientId", model: "User" } // Récupère tous les champs du mécano
           ],
         })
         .populate({
           path: "services.serviceId",
-          model: "Service",
-          select: "nom duree"
+          model: "Service"
         })
         .populate({
           path: "pieces.pieceId",
-          model: "Piece",
-          select: "nom prixunitaire"
+          model: "Piece"
         })
         .exec();
   
-      const interventionsWithDetails = await Promise.all(
-        interventions.map(async (intervention) => {
-          const rendezVous = intervention.rendezVousId;
-          const vehicle = rendezVous?.vehiculeId;
-          const client = rendezVous?.userClientId;
-          const mecanicien = rendezVous?.userMecanicientId;
+      const interventionsWithDetails = interventions.map(intervention => {
+        const rendezVous = intervention.rendezVousId;
+        const vehicle = rendezVous?.vehiculeId || {};
+        const client = rendezVous?.userClientId || {};
+        const mecanicien = rendezVous?.userMecanicientId || {};
   
-          const listeservice = intervention.services;
-          const listepiece = intervention.pieces;
+        let duration = intervention.services.reduce((acc, service) => acc + (service.serviceId?.duree || 0), 0);
   
-          let duration = 0;
-  
-          for (let i = 0; i < listeservice.length; i++) {
-            const service = listeservice[i].serviceId;
-            duration += service?.duree || 0;
-          }
-  
-          return {
-            _id: intervention._id,
-            status: intervention.status,
-            vehicle: vehicle
-              ? `${vehicle.marque} ${vehicle.model} (${vehicle.immatriculation})`
-              : "Non défini",
-            client: client
-              ? `${client.firstName} ${client.name}`
-              : "Non défini",
-            mecanicien: mecanicien
-              ? `${mecanicien.firstName} ${mecanicien.name}`
-              : "Non défini",
-            remainingTime:
-              duration > 0 ? `${Math.floor(duration)} min` : "Terminé",
-            services: listeservice.map(service => ({
-              nom: service.serviceId.nom,
-              duree: service.serviceId.duree,
-              etat: service.etat 
-            })),
-            pieces: listepiece.map(piece => ({
-              nom: piece.pieceId.nom,
-              prix: piece.pieceId.prixunitaire,
-              quantite: piece.quantite
-            }))
-          };
-        })
-      );
+        return {
+          _id: intervention._id,
+          status: intervention.status,
+          vehicle, // Contient tous les attributs du véhicule
+          client,  // Contient tous les attributs du client
+          mecanicien, // Contient tous les attributs du mécano
+          remainingTime: duration > 0 ? `${Math.floor(duration)} min` : "Terminé",
+          services: intervention.services.map(service => ({
+            ...service.serviceId._doc, // Tous les attributs du service
+            etat: service.etat
+          })),
+          pieces: intervention.pieces.map(piece => ({
+            ...piece.pieceId._doc, // Tous les attributs de la pièce
+            quantite: piece.quantite
+          }))
+        };
+      });
   
       return interventionsWithDetails;
     } catch (error) {
-      console.error(
-        "Erreur lors de la récupération des interventions :",
-        error
-      );
-      throw new Error(
-        "Erreur serveur lors de la récupération des interventions."
-      );
+      console.error("Erreur lors de la récupération des interventions :", error);
+      throw new Error("Erreur serveur lors de la récupération des interventions.");
     }
   }
+  
   
 }
 
