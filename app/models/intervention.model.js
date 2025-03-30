@@ -32,7 +32,7 @@ const interventionSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["en cours", "facturee", "terminee"],
+      enum: ["en cours", "facturee", "terminee", "en attente"],
       required: true,
     },
   },

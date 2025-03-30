@@ -41,6 +41,24 @@ class InterventionController extends CrudController {
     }
   }
 
+  async findNombreInterventionParEtat(req, res, next) {
+    try {
+      const interventions =
+        await interventionService.findNombreInterventionParEtat();
+      new ApiResponse(
+        200,
+        interventions,
+        "Nombre des interventions par etat get avec succes"
+      ).send(res);
+    } catch (error) {
+      new ApiResponse(
+        500,
+        null,
+        "Erreur lors du nombre des interventions par etat"
+      ).send(res);
+    }
+  }
+
   async findOngoingInterventions(req, res, next) {
     try {
       const interventions =
@@ -105,10 +123,6 @@ class InterventionController extends CrudController {
 
   async finalizeIntervention(req, res, next) {
     try {
-      console.log('voici interventionId');
-      console.log('=======================================');
-      console.log(req.params.interventionId);
-      console.log('=======================================');
       const intervention = await interventionService.finalizeIntervention(
         req.params.interventionId
       );
@@ -122,6 +136,23 @@ class InterventionController extends CrudController {
         500,
         null,
         "Erreur lors de la finalisation d'un intervention"
+      ).send(res);
+    }
+  }
+
+  async getOngoingInterventionForDashboard(req, res, next) {
+    try {
+      const intervention = await interventionService.getOngoingInterventionForDashboard();
+      new ApiResponse(
+        200,
+        intervention,
+        "get intervention en cours pour le dashboard avec succes"
+      ).send(res);
+    } catch (error) {
+      new ApiResponse(
+        500,
+        null,
+        "Erreur lors du get intervention en cours pour le dashboard"
       ).send(res);
     }
   }

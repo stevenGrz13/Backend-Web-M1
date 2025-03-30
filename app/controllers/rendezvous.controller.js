@@ -13,13 +13,13 @@ class RendezVousController extends CrudController {
       new ApiResponse(
         200,
         rendezVous,
-        "test ity"
+        "Succes pour la creation de RendezVous"
       ).send(res);
     } catch (error) {
       new ApiResponse(
         500,
         null,
-        "Erreur lors de la récupération du nombre des Rendez Vous"
+        "Erreur lors de la creation du rendezVous"
       ).send(res);
     }
   }
