@@ -140,6 +140,23 @@ class InterventionController extends CrudController {
     }
   }
 
+  async statChiffreAffaireByService(req, res, next) {
+    try {
+      const intervention = await interventionService.statChiffreAffaireByService();
+      new ApiResponse(
+        200,
+        intervention,
+        "get statChiffreAffaireByService"
+      ).send(res);
+    } catch (error) {
+      new ApiResponse(
+        500,
+        null,
+        "Erreur lors du get statChiffreAffaireByService"
+      ).send(res);
+    }
+  }
+
   async getOngoingInterventionForDashboard(req, res, next) {
     try {
       const intervention = await interventionService.getOngoingInterventionForDashboard();

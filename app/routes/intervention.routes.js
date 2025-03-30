@@ -5,6 +5,7 @@ const interventionController = require('../controllers/intervention.controller')
 // Routes pour les interventions
 router.post('/', interventionController.create.bind(interventionController));
 router.get('/', interventionController.getAllPaginate.bind(interventionController));
+router.get('/statChiffreAffaireByService', interventionController.statChiffreAffaireByService);
 router.get('/getOngoingInterventionForDashboard', interventionController.getOngoingInterventionForDashboard);
 router.get('/interventionNumber', interventionController.getNumbersOfInterventions);
 router.get('/interventionNumberParEtat', interventionController.findNombreInterventionParEtat);

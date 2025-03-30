@@ -108,60 +108,89 @@ class InterventionService extends CrudService {
     return { intervention, facture };
   }
 
+  async getBlocAllIntervention() {
+    const interventions = await Intervention.find({ status: "en cours" })
+      .populate({
+        path: "rendezVousId",
+        populate: [
+          { path: "vehiculeId", model: "Vehicle" }, // Récupère tous les champs du véhicule
+          { path: "userClientId", model: "User" }, // Récupère tous les champs du client
+          { path: "userMecanicientId", model: "User" }, // Récupère tous les champs du mécano
+        ],
+      })
+      .populate({
+        path: "services.serviceId",
+        model: "Service",
+      })
+      .populate({
+        path: "pieces.pieceId",
+        model: "Piece",
+      })
+      .exec();
+    return interventions;
+  }
+
   async getOngoingInterventionForDashboard() {
     try {
-      const interventions = await Intervention.find({ status: "en cours" })
-        .populate({
-          path: "rendezVousId",
-          populate: [
-            { path: "vehiculeId", model: "Vehicle" }, // Récupère tous les champs du véhicule
-            { path: "userClientId", model: "User" },  // Récupère tous les champs du client
-            { path: "userMecanicientId", model: "User" } // Récupère tous les champs du mécano
-          ],
-        })
-        .populate({
-          path: "services.serviceId",
-          model: "Service"
-        })
-        .populate({
-          path: "pieces.pieceId",
-          model: "Piece"
-        })
-        .exec();
-  
-      const interventionsWithDetails = interventions.map(intervention => {
+      const interventions = await this.getBlocAllIntervention();
+
+      const interventionsWithDetails = interventions.map((intervention) => {
         const rendezVous = intervention.rendezVousId;
         const vehicle = rendezVous?.vehiculeId || {};
         const client = rendezVous?.userClientId || {};
         const mecanicien = rendezVous?.userMecanicientId || {};
-  
-        let duration = intervention.services.reduce((acc, service) => acc + (service.serviceId?.duree || 0), 0);
-  
+
+        let duration = intervention.services.reduce(
+          (acc, service) => acc + (service.serviceId?.duree || 0),
+          0
+        );
+
         return {
           _id: intervention._id,
           status: intervention.status,
           vehicle, // Contient tous les attributs du véhicule
-          client,  // Contient tous les attributs du client
+          client, // Contient tous les attributs du client
           mecanicien, // Contient tous les attributs du mécano
-          remainingTime: duration > 0 ? `${Math.floor(duration)} min` : "Terminé",
-          services: intervention.services.map(service => ({
+          remainingTime:
+            duration > 0 ? `${Math.floor(duration)} min` : "Terminé",
+          services: intervention.services.map((service) => ({
             ...service.serviceId._doc, // Tous les attributs du service
-            etat: service.etat
+            etat: service.etat,
           })),
-          pieces: intervention.pieces.map(piece => ({
+          pieces: intervention.pieces.map((piece) => ({
             ...piece.pieceId._doc, // Tous les attributs de la pièce
-            quantite: piece.quantite
-          }))
+            quantite: piece.quantite,
+          })),
         };
       });
-  
+
       return interventionsWithDetails;
     } catch (error) {
-      console.error("Erreur lors de la récupération des interventions :", error);
-      throw new Error("Erreur serveur lors de la récupération des interventions.");
+      console.error(
+        "Erreur lors de la récupération des interventions :",
+        error
+      );
+      throw new Error(
+        "Erreur serveur lors de la récupération des interventions."
+      );
     }
   }
+
+  async statChiffreAffaireByService() {
+    const interventions = await this.getBlocAllIntervention();
+    let chiffreaffaire = 0;
+    let listeServices = [];
   
+    for (let i = 0; i < interventions.length; i++) {
+      for (let z = 0; z < interventions[i].services.length; z++) {
+        const service = interventions[i].services[z].serviceId;
+        listeServices.push(service);
+        chiffreaffaire += parseFloat(service.prix) || 0;
+      }
+    }
+  
+    chiffreaffaire = chiffreaffaire.toFixed(2);
+  }
   
 }
 
