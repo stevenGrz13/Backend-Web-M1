@@ -176,22 +176,60 @@ class InterventionService extends CrudService {
     }
   }
 
-  async statChiffreAffaireByService() {
+  async statChiffreAffaireByService(demande) {
     const interventions = await this.getBlocAllIntervention();
     let chiffreaffaire = 0;
-    let listeServices = [];
-  
+
+    const pourcentage = new Map();
+
     for (let i = 0; i < interventions.length; i++) {
       for (let z = 0; z < interventions[i].services.length; z++) {
         const service = interventions[i].services[z].serviceId;
-        listeServices.push(service);
+        const serviceId = service.nom.toString();
+        const prixActuel = parseFloat(service.prix) || 0;
+
+        if (pourcentage.has(serviceId)) {
+          pourcentage.set(
+            serviceId,
+            (parseFloat(pourcentage.get(serviceId)) + prixActuel).toFixed(2)
+          );
+        } else {
+          pourcentage.set(serviceId, prixActuel.toFixed(2));
+        }
         chiffreaffaire += parseFloat(service.prix) || 0;
       }
     }
-  
+
     chiffreaffaire = chiffreaffaire.toFixed(2);
+
+    if(demande == "pourcentage"){
+      pourcentage.forEach((value, key) => {
+        let newValue = (value * 100) / chiffreaffaire;
+        pourcentage.set(key, newValue);
+      });
+    }
+
+    const pourcentageObj = Object.fromEntries(pourcentage);
+    return pourcentageObj;
   }
-  
+
+  async totalRevenuParService() {
+    const interventions = await this.getBlocAllIntervention();
+    let chiffreaffaire = 0;
+
+    for (let i = 0; i < interventions.length; i++) {
+      for (let z = 0; z < interventions[i].services.length; z++) {
+        const service = interventions[i].services[z].serviceId;
+        chiffreaffaire += parseFloat(service.prix) || 0;
+      }
+    }
+
+    chiffreaffaire = chiffreaffaire.toFixed(2);
+
+    console.log('chiffre affaire = ', chiffreaffaire);
+
+    return { chiffreAffaire : chiffreaffaire }
+  }
 }
 
 module.exports = new InterventionService();
