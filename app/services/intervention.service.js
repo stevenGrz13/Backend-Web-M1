@@ -49,16 +49,12 @@ class InterventionService extends CrudService {
     const listeFacturee = await Intervention.find({
       status: "facturee",
     }).populate("rendezVousId services.serviceId pieces.pieceId");
-    const listeTerminee = await Intervention.find({
-      status: "terminee",
-    }).populate("rendezVousId services.serviceId pieces.pieceId");
     const listeAttente = await Intervention.find({
       status: "en attente",
     }).populate("rendezVousId services.serviceId pieces.pieceId");
     return {
       encours: listeEnCours.length,
       facturee: listeFacturee.length,
-      terminee: listeTerminee.length,
       enattente: listeAttente.length,
     };
   }
@@ -102,14 +98,14 @@ class InterventionService extends CrudService {
     let intervention = await Intervention.findById(id);
     const result = await Intervention.updateOne(
       { _id: id },
-      { $set: { status: "terminee" } }
+      { $set: { status: "facturee" } }
     );
     intervention = result;
     return { intervention, facture };
   }
 
-  async getBlocAllIntervention() {
-    const interventions = await Intervention.find({ status: "en cours" })
+  async getBlocAllIntervention(status) {
+    const interventions = await Intervention.find({ status: status })
       .populate({
         path: "rendezVousId",
         populate: [
@@ -132,7 +128,7 @@ class InterventionService extends CrudService {
 
   async getOngoingInterventionForDashboard() {
     try {
-      const interventions = await this.getBlocAllIntervention();
+      const interventions = await this.getBlocAllIntervention("en cours");
 
       const interventionsWithDetails = interventions.map((intervention) => {
         const rendezVous = intervention.rendezVousId;
@@ -177,7 +173,7 @@ class InterventionService extends CrudService {
   }
 
   async statChiffreAffaireByService(demande) {
-    const interventions = await this.getBlocAllIntervention();
+    const interventions = await this.getBlocAllIntervention("facturee");
     let chiffreaffaire = 0;
 
     const pourcentage = new Map();

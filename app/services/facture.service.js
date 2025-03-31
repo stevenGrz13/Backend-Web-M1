@@ -3,7 +3,6 @@ const CrudService = require("../core/services/crud.service");
 const Facture = require("../models/facture.model");
 const Intervention = require("../models/intervention.model");
 const RendezVous = require("../models/rendezvous.model");
-
 class FactureService extends CrudService {
   constructor() {
     super(Facture);
@@ -66,6 +65,90 @@ class FactureService extends CrudService {
       console.error("Erreur lors de la génération de la facture:", error);
       throw error;
     }
+  }
+
+  // async getBlocFactureByClientId(clientId) {
+  //   const factures = await Facture.find({ userClientId: clientId })
+  //     .populate({
+  //       path: "userClientId",
+  //       model: "User",
+  //     })
+  //     // .populate({
+  //     //     path: "rendezVousId",
+  //     //     populate: [
+  //     //       { path: "vehiculeId", model: "Vehicle" },
+  //     //       { path: "userClientId", model: "User" },
+  //     //       { path: "userMecanicientId", model: "User" },
+  //     //     ],
+  //     //   })
+  //     .populate({
+  //       path: "services.serviceId",
+  //       model: "Service",
+  //     })
+  //     .populate({
+  //       path: "pieces.pieceId",
+  //       model: "Piece",
+  //     })
+  //     .exec();
+  //   return factures;
+  // }
+
+  /// POPULATED GET FACTURE BY CLIENT ID
+
+  async getBlocFactureByClientId(clientId) {
+    const factures = await Facture.find({ userClientId: clientId })
+      .populate({
+        path: "userClientId",
+        model: "User",
+      })
+      .populate({
+        path: "services.serviceId",
+        model: "Service",
+      })
+      .populate({
+        path: "pieces.pieceId",
+        model: "Piece",
+      })
+      .exec();
+
+    if (!factures.length) {
+      return { success: false, message: "Aucune facture trouvée" };
+    }
+
+    const formattedFactures = factures.map((facture) => ({
+      date: facture.date,
+      factureId: facture._id,
+      status: facture.statut === "payé" ? "PAID" : "PENDING",
+      nomClient: `${facture.userClientId.firstName} ${facture.userClientId.name}`,
+      emailClient: facture.userClientId.email,
+      numeroClient: facture.userClientId.telephone || "",
+
+      services: {
+        details: facture.services.map((service) => ({
+          serviceId: service.serviceId._id,
+          nom: service.serviceId.nom,
+          prix: service.prix,
+          quantite: 1,
+          montant: service.prix,
+        })),
+        total: facture.services.reduce((sum, service) => sum + service.prix, 0),
+      },
+
+      pieces: {
+        details: facture.pieces.map((piece) => ({
+          _id: piece.pieceId._id,
+          nom: piece.pieceId.nom,
+          prixUnitaire: piece.pieceId.prixunitaire,
+          quantite: piece.quantite,
+          montant: piece.prix,
+        })),
+        total: facture.pieces.reduce((sum, piece) => sum + piece.prix, 0),
+      },
+
+      montant: facture.total,
+    }));
+
+    return { formattedFactures };
   }
 }
 
