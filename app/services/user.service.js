@@ -3,6 +3,7 @@ const CrudService = require("../core/services/crud.service");
 const roleService = require("../services/role.service");
 const rendezVousService = require("../services/rendezvous.service");
 const RoleType = require("../core/roletype.model");
+const logger = require("../../utils/logger");
 
 class UserService extends CrudService {
   constructor() {
@@ -51,6 +52,40 @@ class UserService extends CrudService {
     const roleentity = await roleService.findRole(role);
     const users = await User.find({ roleId: roleentity[0]._id.toString() });
     return { users };
+  }
+
+  async findAllPaginateByRole(role, { page = 1, limit = 10 }) {
+
+    let dataResponse = {};
+    logger.info(`Récupération de tous les elements...`);
+    const skip = (page - 1) * limit;
+
+    const roles = await roleService.findRole(role);
+
+    const [data, total] = await Promise.all([
+      User.find({ roleId: roles[0]._id.toString() }).skip(skip).limit(limit),
+      User.countDocuments({ roleId: roles[0]._id.toString() }),
+    ]);
+
+
+
+    const totalPages = Math.ceil(total / limit);
+    const hasNext = page < totalPages;
+    const hasPrev = page > 1;
+
+    dataResponse = {
+      data,
+      pagination: {
+        total,
+        totalPages,
+        currentPage: page,
+        hasNext,
+        hasPrev,
+        limit,
+      },
+    };
+
+    return dataResponse;
   }
 
   async LogIn(email, password, roleId) {

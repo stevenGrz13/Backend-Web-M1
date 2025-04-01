@@ -2,9 +2,21 @@ const userService = require("../services/user.service");
 const CrudController = require("../core/controllers/crud.controller");
 const ApiResponse = require("../core/response.model");
 const { RoleType } = require("../core/roletype.model");
+const RendezVousService = require("../services/rendezvous.service");
 class UserController extends CrudController {
   constructor() {
     super(userService);
+  }
+
+  async getClients(req, res){
+    try {
+      const page = parseInt(req.query.page, 10) || 1;
+      const limit = parseInt(req.query.limit, 10) || 10;
+      const {data, pagination} = await userService.getAllPaginate({page, limit});
+      ApiResponse.paginate(res, data, pagination, "Récupération des clients...")
+    } catch (error) {
+      new ApiResponse(500, null, "Erreur lors de la récupération des users by role").send(res);
+    }
   }
 
   async getUsersByRole(req, res) {

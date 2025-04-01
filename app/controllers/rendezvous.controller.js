@@ -7,6 +7,26 @@ class RendezVousController extends CrudController {
     super(RendezVousService);
   }
 
+  async getInfos(req, res) {
+    console.log("salut")
+    try {
+      // console.log('')
+      const page = parseInt(req.query.page, 10) || 1;
+      const limit = parseInt(req.query.limit, 10) || 10;
+
+      const {dataFormatted, pagination} = await RendezVousService.getInfos({page, limit});
+      ApiResponse.paginate(res, dataFormatted, pagination, "Récupération des rendez-vous détaillés")
+    } catch (error) {
+
+      new ApiResponse(
+          500,
+          null,
+          "Erreur lors de la récupération des rendez-vous"
+      ).send(res);
+      throw error;
+    }
+  }
+
   async genererRendezVousAvecSuggestion(req, res) {
     try {
       const rendezVous = await RendezVousService.genererRendezVousAvecSuggestion(req.body);
@@ -110,6 +130,8 @@ class RendezVousController extends CrudController {
       ).send(res);
     }
   }
+
+
 }
 
 module.exports = new RendezVousController();

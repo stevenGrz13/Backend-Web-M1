@@ -6,6 +6,67 @@ class RendezVousService extends CrudService {
     super(RendezVous);
   }
 
+  async getInfos({page = 1, limit = 10}) {
+    try {
+
+      let dataResponse = {};
+
+      const skip = (page - 1) * limit;
+
+      const [data, total] = await Promise.all([
+        RendezVous.find()
+            .skip(skip)
+            .limit(limit)
+            .populate('userClientId', '-password') // Peuple le client (en excluant le mot de passe)
+            .populate('userMecanicientId', '-password') // Peuple le mécanicien (en excluant le mot de passe)
+            .populate('vehiculeId') // Peuple le véhicule
+            .populate({
+              path: 'services.serviceId', // Peuple les services dans le tableau
+              model: 'Service'
+            })
+            .populate({
+              path: 'pieces.piece', // Peuple les pièces dans le tableau
+              model: 'Piece'
+            })
+            .exec(),
+        RendezVous.countDocuments(),
+      ]);
+
+      // console.log("data === ", data)
+
+      const dataFormatted = data.map(item => ({
+        _id: item._id,
+        start: item.date,
+        clientName: item.userClientId.firstName + " " +item.userClientId.name,
+        status: item.statut,
+        mechanical: item.userMecanicientId.firstName + " " + item.userMecanicientId.name,
+      }));
+
+      // console.log(dataFormatted)
+
+
+      const totalPages = Math.ceil(total / limit);
+      const hasNext = page < totalPages;
+      const hasPrev = page > 1;
+
+      dataResponse = {
+        dataFormatted,
+        pagination: {
+          total,
+          totalPages,
+          currentPage: page,
+          hasNext,
+          hasPrev,
+          limit,
+        },
+      };
+
+      return dataResponse;
+    } catch (error) {
+      throw new Error(`Erreur lors de la récupération des véhicules: ${error.message}`);
+    }
+  }
+
   async findRendezVousByDate(date) {
     const startOfDay = new Date(date);
     startOfDay.setHours(0, 0, 0, 0);
