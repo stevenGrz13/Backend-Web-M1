@@ -172,6 +172,132 @@ class InterventionService extends CrudService {
     }
   }
 
+  async getDetails(id) {
+    try {
+      const intervention = await Intervention.findById(id)
+          .populate({
+            path: "rendezVousId",
+            populate: [
+              { path: "vehiculeId", model: "Vehicle" },
+              { path: "userClientId", model: "User" },
+              { path: "userMecanicientId", model: "User" },
+            ],
+          })
+          .populate({
+            path: "services.serviceId",
+            model: "Service",
+          })
+          .populate({
+            path: "pieces.pieceId",
+            model: "Piece",
+          })
+          .exec();
+
+      return this.formatInterventionDetails(intervention);
+    } catch (error) {
+      console.error(`Erreur lors de la récupération de l'intervention ${id}:`, error);
+      throw new Error(`Erreur serveur lors de la récupération de l'intervention ${id}.`);
+    }
+  }
+
+  formatInterventionDetails(intervention) {
+    if (!intervention) return null;
+
+    const rendezVous = intervention.rendezVousId || {};
+    const vehicle = rendezVous.vehiculeId || {};
+    const client = rendezVous.userClientId || {};
+    const mechanical = rendezVous.userMecanicientId || {};
+
+    const duration = intervention.services.reduce(
+        (acc, service) => acc + (service.serviceId?.duree || 0),
+        0
+    );
+
+    return {
+      _id: intervention._id,
+      status: intervention.status,
+      vehicle,
+      client,
+      mechanical,
+      estimateTime: Math.floor(duration),
+      services: intervention.services.map((service) => ({
+        ...service.serviceId?._doc,
+        etat: service.etat,
+      })),
+      pieces: intervention.pieces.map((piece) => ({
+        ...piece.pieceId?._doc,
+        quantite: piece.quantite,
+      })),
+    };
+  }
+
+  async getLatestInterventionByVehicleId(vehicleId, status = "en cours") {
+    try {
+      const intervention = await Intervention.findOne({ status })
+          .sort({ createdAt: -1 }) // Tri par date de création décroissante
+          .populate({
+            path: "rendezVousId",
+            match: { vehiculeId: vehicleId },
+            populate: [
+              { path: "vehiculeId", model: "Vehicle" },
+              { path: "userClientId", model: "User" },
+              { path: "userMecanicientId", model: "User" },
+            ],
+          })
+          .populate({
+            path: "services.serviceId",
+            model: "Service",
+          })
+          .populate({
+            path: "pieces.pieceId",
+            model: "Piece",
+          })
+          .exec();
+
+      // Vérifier si l'intervention existe et a un rendezVousId valide
+      if (!intervention || !intervention.rendezVousId) {
+        return null;
+      }
+
+      return this.formatInterventionDetails(intervention);
+    } catch (error) {
+      console.error(`Erreur lors de la récupération de l'intervention pour le véhicule ${vehicleId}:`, error);
+      throw new Error(`Erreur serveur lors de la récupération de l'intervention du véhicule ${vehicleId}.`);
+    }
+  }
+
+  async getByVehicleId(vehicleId, status = "en cours") {
+    try {
+      const interventions = await Intervention.find({ status })
+          .populate({
+            path: "rendezVousId",
+            match: { vehiculeId: vehicleId },
+            populate: [
+              { path: "vehiculeId", model: "Vehicle" },
+              { path: "userClientId", model: "User" },
+              { path: "userMecanicientId", model: "User" },
+            ],
+          })
+          .populate({
+            path: "services.serviceId",
+            model: "Service",
+          })
+          .populate({
+            path: "pieces.pieceId",
+            model: "Piece",
+          })
+          .exec();
+
+      // Filtrer les interventions où rendezVousId n'est pas null
+      const filteredInterventions = interventions.filter(i => i.rendezVousId !== null);
+
+      return filteredInterventions.map(this.formatInterventionDetails);
+    } catch (error) {
+      console.error(`Erreur lors de la récupération des interventions pour le véhicule ${vehicleId}:`, error);
+      throw new Error(`Erreur serveur lors de la récupération des interventions du véhicule ${vehicleId}.`);
+    }
+  }
+
   async statChiffreAffaireByService(demande) {
     const interventions = await this.getBlocAllIntervention("facturee");
     let chiffreaffaire = 0;

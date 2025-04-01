@@ -15,7 +15,6 @@ class VehicleController extends CrudController {
       const { clientId } = req.params;
       const page = parseInt(req.query.page, 10) || 1;
       const limit = parseInt(req.query.limit, 10) || 10;
-      // const { page = 1, limit = 10 } = req.query;
 
       const {data, pagination} = await vehicleService.getVehiclesByClientId(
           clientId,

@@ -192,6 +192,44 @@ class InterventionController extends CrudController {
       ).send(res);
     }
   }
+
+
+  async getDetails(req, res, next) {
+    try {
+      const {id} = req.params
+      const intervention = await interventionService.getDetails(id);
+      new ApiResponse(
+          200,
+          intervention,
+          "details de l'intervention "
+      ).send(res);
+    } catch (error) {
+      new ApiResponse(
+          500,
+          null,
+          "Erreur lors du recuperation de l'intervention "
+      ).send(res);
+    }
+  }
+
+  async getLatestByVehicleId(req, res, next) {
+    try {
+      const {vehicleId} = req.params
+      console.log("vehicles id === ", vehicleId)
+      const intervention = await interventionService.getLatestInterventionByVehicleId(vehicleId);
+      new ApiResponse(
+          200,
+          intervention,
+          "details de l'intervention "
+      ).send(res);
+    } catch (error) {
+      new ApiResponse(
+          500,
+          null,
+          "Erreur lors du recuperation de l'intervention "
+      ).send(res);
+    }
+  }
 }
 
 module.exports = new InterventionController();
