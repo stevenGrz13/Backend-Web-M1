@@ -1,11 +1,77 @@
+
+
 const Intervention = require("../models/intervention.model");
 const logger = require("../../utils/logger");
 const CrudService = require("../core/services/crud.service");
 const factureService = require("../services/facture.service");
 const serviceService = require("../services/services.service");
+const RendezVous = require("../models/rendezvous.model")
 class InterventionService extends CrudService {
   constructor() {
     super(Intervention);
+  }
+
+  async getAllByMechanic(mechanicId, {page = 1, limit = 10}) {
+    try {
+      const skip = (page - 1) * limit;
+
+      // D'abord trouver les rendez-vous associés au mécanicien
+      const rendezVousIds = await RendezVous.find({
+        userMecanicientId: mechanicId
+      }).select('_id');
+
+      // Ensuite trouver les interventions correspondantes
+      const [interventions, total] = await Promise.all([
+        Intervention.find({
+          rendezVousId: { $in: rendezVousIds.map(r => r._id) }
+        })
+            .populate({
+              path: 'rendezVousId',
+              populate: [
+                { path: 'userClientId', model: 'User', select: 'name firstName email' },
+                { path: 'userMecanicientId', model: 'User', select: 'name firstName email' },
+                { path: 'vehiculeId', model: 'Vehicle' }
+              ]
+            })
+            .skip(skip)
+            .limit(limit)
+            .lean()
+            .exec(),
+
+        Intervention.countDocuments({
+          rendezVousId: { $in: rendezVousIds.map(r => r._id) }
+        })
+      ]);
+
+      // Transformer les données
+      const formattedData = interventions.map(intervention => ({
+        _id: intervention._id,
+        client: intervention.rendezVousId?.userClientId,
+        mecanicien: intervention.rendezVousId?.userMecanicientId,
+        vehicle: intervention.rendezVousId?.vehiculeId,
+        status: intervention.status,
+        estimateTime: intervention.createdAt
+      }));
+
+      const totalPages = Math.ceil(total / limit);
+      const hasNext = page < totalPages;
+      const hasPrev = page > 1;
+
+      return {
+        data: formattedData,
+        pagination: {
+          total,
+          totalPages,
+          currentPage: page,
+          hasNext,
+          hasPrev,
+          limit,
+        },
+      };
+    } catch (error) {
+      console.error('Error in getAllByMechanic:', error);
+      throw new Error(`Erreur lors de la récupération des interventions: ${error.message}`);
+    }
   }
 
   async findInterventionByClientId(ClientId) {

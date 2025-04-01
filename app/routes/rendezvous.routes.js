@@ -6,6 +6,8 @@ const router = express.Router();
 router.get('/info', rendezVousController.getInfos);
 // router.get('/:id/details', rendezVousController.getInfos);
 router.post('/', rendezVousController.genererRendezVousAvecSuggestion);
+router.get('/info/clients/:clientId', rendezVousController.getInfosByClient);
+router.get('/info/mechanics/:mechanicId', rendezVousController.getInfosByMechanic);
 router.get('/client/:clientId', rendezVousController.getRendezVousParClient);
 router.get('/mechanic/:mechanicienId', rendezVousController.getRendezVousParMecanicien);
 router.get('/getNombreRdv', rendezVousController.getNombreRdv);

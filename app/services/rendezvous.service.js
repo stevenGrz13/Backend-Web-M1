@@ -1,9 +1,86 @@
 const RendezVous = require("../models/rendezvous.model");
 const CrudService = require("../core/services/crud.service");
 const Intervention = require("../models/intervention.model");
+const userService = require("./user.service");
 class RendezVousService extends CrudService {
   constructor() {
     super(RendezVous);
+  }
+
+  async getInfosByUser(userType, userId, {page = 1, limit = 10}) {
+    try {
+      const skip = (page - 1) * limit;
+
+      // Détermine le champ de recherche en fonction du type d'utilisateur
+      const queryField = userType === 'mechanic'
+          ? 'userMecanicientId'
+          : 'userClientId';
+
+      const query = { [queryField]: userId };
+
+      const [data, total] = await Promise.all([
+        RendezVous.find(query)
+            .skip(skip)
+            .limit(limit)
+            .populate('userClientId', '-password')
+            .populate('userMecanicientId', '-password')
+            .populate('vehiculeId')
+            .populate({
+              path: 'services.serviceId',
+              model: 'Service'
+            })
+            .populate({
+              path: 'pieces.piece',
+              model: 'Piece'
+            })
+            .exec(),
+        RendezVous.countDocuments(query), // Important d'utiliser le même query pour le count
+      ]);
+
+      return this.formatPaginatedResponse(data, total, page, limit);
+    } catch (error) {
+      throw new Error(`Erreur lors de la récupération des rendez-vous: ${error.message}`);
+    }
+  }
+
+// Les méthodes originales deviennent alors des wrappers simples
+  async getInfosByMechanic(mechanicId, pagination) {
+    return this.getInfosByUser('mechanic', mechanicId, pagination);
+  }
+
+  async getInfosByClient(clientId, pagination) {
+    return this.getInfosByUser('client', clientId, pagination);
+  }
+
+  // utils/responseFormatter.js
+
+  formatPaginatedResponse(data, total, page, limit) {
+    // Formatage des données
+    const dataFormatted = data.map(item => ({
+      _id: item._id,
+      start: item.date,
+      clientName: `${item.userClientId.firstName} ${item.userClientId.name}`,
+      status: item.statut,
+      mechanical: `${item.userMecanicientId.firstName} ${item.userMecanicientId.name}`,
+    }));
+
+    // Calcul de la pagination
+    const totalPages = Math.ceil(total / limit);
+    const hasNext = page < totalPages;
+    const hasPrev = page > 1;
+
+    // Retour de la réponse formatée
+    return {
+      data: dataFormatted,
+      pagination: {
+        total,
+        totalPages,
+        currentPage: page,
+        hasNext,
+        hasPrev,
+        limit,
+      },
+    };
   }
 
   async getInfos({page = 1, limit = 10}) {
@@ -32,36 +109,7 @@ class RendezVousService extends CrudService {
         RendezVous.countDocuments(),
       ]);
 
-      // console.log("data === ", data)
-
-      const dataFormatted = data.map(item => ({
-        _id: item._id,
-        start: item.date,
-        clientName: item.userClientId.firstName + " " +item.userClientId.name,
-        status: item.statut,
-        mechanical: item.userMecanicientId.firstName + " " + item.userMecanicientId.name,
-      }));
-
-      // console.log(dataFormatted)
-
-
-      const totalPages = Math.ceil(total / limit);
-      const hasNext = page < totalPages;
-      const hasPrev = page > 1;
-
-      dataResponse = {
-        dataFormatted,
-        pagination: {
-          total,
-          totalPages,
-          currentPage: page,
-          hasNext,
-          hasPrev,
-          limit,
-        },
-      };
-
-      return dataResponse;
+      return this.formatPaginatedResponse(data, total, page, limit);
     } catch (error) {
       throw new Error(`Erreur lors de la récupération des véhicules: ${error.message}`);
     }
@@ -132,18 +180,23 @@ class RendezVousService extends CrudService {
   }
 
   async genererRendezVousAvecSuggestion(data) {
-    const userService = require("../services/user.service");
-    const date = data.date;
-    const mecanicienLibre = await userService.findMecanicienLibreByDate(date);
-    if(mecanicienLibre.nombre > 0){
-      var mecanicienId = mecanicienLibre.mecaniciens[0]._id;
-      data.userMecanicientId = mecanicienId.toString();
-      const rendezVous = await RendezVous.create(data);
-      return rendezVous;
-    }
-    else{
-      const message = "Aucun Mecanicien Libre pour votre Date";
-      return message;
+    try{
+      const userService = require("../services/user.service");
+      const date = data.date;
+      const mecanicienLibre = await userService.findMecanicienLibreByDate(date);
+      if(mecanicienLibre.nombre > 0){
+        var mecanicienId = mecanicienLibre.mecaniciens[0]._id;
+        data.userMecanicientId = mecanicienId.toString();
+        const rendezVous = await RendezVous.create(data);
+        return rendezVous;
+      }
+      else{
+        const message = "Aucun Mecanicien Libre pour votre Date";
+        return message;
+      }
+    }catch (error){
+      console.error(error)
+      throw error;
     }
   }
 }

@@ -7,6 +7,26 @@ class InterventionController extends CrudController {
     super(interventionService);
   }
 
+  async getAllByMechanic(req, res){
+    try {
+      const { mechanicId } = req.params;
+      const page = parseInt(req.query.page, 10) || 1;
+      const limit = parseInt(req.query.limit, 10) || 10;
+
+      const {data, pagination} = await interventionService.getAllByMechanic(mechanicId, {page, limit});
+
+      ApiResponse.paginate(res, data, pagination, "Récupération des intervention par mécanicien")
+    }catch (error) {
+
+      new ApiResponse(
+          500,
+          null,
+          "Erreur lors de la récupération des rendez-vous"
+      ).send(res);
+      throw error;
+    }
+  }
+
   async getInterventionByClientId(req, res, next) {
     try {
       const interventions = await interventionService.findInterventionByClientId(req.params.ClientId);

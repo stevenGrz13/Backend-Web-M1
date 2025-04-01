@@ -7,15 +7,55 @@ class RendezVousController extends CrudController {
     super(RendezVousService);
   }
 
+  async getInfosByClient(req, res) {
+
+    try {
+      const { clientId } = req.params;
+      const page = parseInt(req.query.page, 10) || 1;
+      const limit = parseInt(req.query.limit, 10) || 10;
+
+      const {data, pagination} = await RendezVousService.getInfosByClient(clientId, {page, limit});
+      ApiResponse.paginate(res, data, pagination, "Récupération des rendez-vous détaillés")
+    } catch (error) {
+
+      new ApiResponse(
+          500,
+          null,
+          "Erreur lors de la récupération des rendez-vous"
+      ).send(res);
+      throw error;
+    }
+  }
+
+  async getInfosByMechanic(req, res) {
+
+    try {
+      // console.log('')
+      const { mechanicId } = req.params;
+      const page = parseInt(req.query.page, 10) || 1;
+      const limit = parseInt(req.query.limit, 10) || 10;
+
+      const {data, pagination} = await RendezVousService.getInfosByMechanic(mechanicId, {page, limit});
+      ApiResponse.paginate(res, data, pagination, "Récupération des rendez-vous détaillés par mécanicien")
+    } catch (error) {
+
+      new ApiResponse(
+          500,
+          null,
+          "Erreur lors de la récupération des rendez-vous"
+      ).send(res);
+      throw error;
+    }
+  }
+
   async getInfos(req, res) {
-    console.log("salut")
     try {
       // console.log('')
       const page = parseInt(req.query.page, 10) || 1;
       const limit = parseInt(req.query.limit, 10) || 10;
 
-      const {dataFormatted, pagination} = await RendezVousService.getInfos({page, limit});
-      ApiResponse.paginate(res, dataFormatted, pagination, "Récupération des rendez-vous détaillés")
+      const {data, pagination} = await RendezVousService.getInfos({page, limit});
+      ApiResponse.paginate(res, data, pagination, "Récupération des rendez-vous détaillés")
     } catch (error) {
 
       new ApiResponse(
@@ -41,6 +81,8 @@ class RendezVousController extends CrudController {
         null,
         "Erreur lors de la creation du rendezVous"
       ).send(res);
+
+      throw error;
     }
   }
 
