@@ -187,6 +187,13 @@ class FactureService extends CrudService {
 
     return { formattedFactures };
   }
+
+  async payerFacture(factureId) {
+    const facture = await this.getById(factureId);
+    facture.statut = 'payee';
+
+    return await this.update(factureId, facture);
+  }
 }
 
 module.exports = new FactureService();
