@@ -3,6 +3,7 @@ const CrudService = require("../core/services/crud.service");
 const Facture = require("../models/facture.model");
 const Intervention = require("../models/intervention.model");
 const RendezVous = require("../models/rendezvous.model");
+const Vehicle = require("../models/vehicle.model");
 class FactureService extends CrudService {
   constructor() {
     super(Facture);
@@ -64,6 +65,42 @@ class FactureService extends CrudService {
     } catch (error) {
       console.error("Erreur lors de la génération de la facture:", error);
       throw error;
+    }
+  }
+
+
+  async getAllByClient(clientId, {page = 1, limit = 1}){
+    try {
+
+      let dataResponse = {};
+
+      const skip = (page - 1) * limit;
+
+      const [data, total] = await Promise.all([
+        Facture.find({userClientId: clientId}).skip(skip).limit(limit),
+        Facture.countDocuments({userClientId: clientId}),
+      ]);
+
+
+      const totalPages = Math.ceil(total / limit);
+      const hasNext = page < totalPages;
+      const hasPrev = page > 1;
+
+      dataResponse = {
+        data,
+        pagination: {
+          total,
+          totalPages,
+          currentPage: page,
+          hasNext,
+          hasPrev,
+          limit,
+        },
+      };
+
+      return dataResponse;
+    } catch (error) {
+      throw new Error(`Erreur lors de la récupération des véhicules: ${error.message}`);
     }
   }
 

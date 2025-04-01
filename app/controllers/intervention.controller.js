@@ -61,13 +61,15 @@ class InterventionController extends CrudController {
 
   async findOngoingInterventions(req, res, next) {
     try {
-      const interventions =
-        await interventionService.findOngoingInterventions();
+
+      const interventions = await interventionService.findOngoingInterventions();
+
       new ApiResponse(
         200,
         interventions,
         "Interventions en cours récupérées avec succès"
       ).send(res);
+
     } catch (error) {
       new ApiResponse(
         500,
@@ -80,17 +82,21 @@ class InterventionController extends CrudController {
   async updateServiceStatus(req, res, next) {
     try {
       const { interventionId, serviceId, status } = req.body;
+
       const intervention = await interventionService.updateServiceStatus(
         interventionId,
         serviceId,
         status
       );
+
       new ApiResponse(
         200,
         intervention,
         "Statut du service mis à jour avec succès"
       ).send(res);
+
     } catch (error) {
+
       new ApiResponse(
         500,
         null,
@@ -102,17 +108,21 @@ class InterventionController extends CrudController {
   async updatePieceQuantity(req, res, next) {
     try {
       const { interventionId, pieceId, quantity } = req.body;
+
       const intervention = await interventionService.updatePieceQuantity(
         interventionId,
         pieceId,
         quantity
       );
+
       new ApiResponse(
         200,
         intervention,
         "Quantité de la pièce mise à jour avec succès"
       ).send(res);
+
     } catch (error) {
+
       new ApiResponse(
         500,
         null,
@@ -123,15 +133,19 @@ class InterventionController extends CrudController {
 
   async finalizeIntervention(req, res, next) {
     try {
+
       const intervention = await interventionService.finalizeIntervention(
         req.params.interventionId
       );
+
       new ApiResponse(
         200,
         intervention,
         "Intervention finalisée et generation du facture avec succès "
       ).send(res);
+
     } catch (error) {
+
       new ApiResponse(
         500,
         null,
@@ -142,35 +156,44 @@ class InterventionController extends CrudController {
 
   async statChiffreAffaireByService(req, res, next) {
     try {
+
       const intervention = await interventionService.statChiffreAffaireByService(req.params.demande);
+
       new ApiResponse(
         200,
         intervention,
         "get statChiffreAffaireByService"
       ).send(res);
+
     } catch (error) {
+
       new ApiResponse(
         500,
         null,
         "Erreur lors du get statChiffreAffaireByService"
       ).send(res);
+
     }
   }
 
   async totalRevenueService(req, res, next) {
     try {
       const intervention = await interventionService.totalRevenuParService();
+
       new ApiResponse(
         200,
         intervention,
         "total revenue service"
       ).send(res);
+
     } catch (error) {
+
       new ApiResponse(
         500,
         null,
         "Erreur lors du total revenue service"
       ).send(res);
+
     }
   }
 
