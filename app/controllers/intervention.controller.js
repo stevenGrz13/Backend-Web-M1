@@ -197,8 +197,6 @@ class InterventionController extends CrudController {
     }
   }
 
-  totalRevenuParService
-
   async getOngoingInterventionForDashboard(req, res, next) {
     try {
       const intervention = await interventionService.getOngoingInterventionForDashboard();
@@ -244,6 +242,24 @@ class InterventionController extends CrudController {
           200,
           intervention,
           "details de l'intervention "
+      ).send(res);
+    } catch (error) {
+      new ApiResponse(
+          500,
+          null,
+          "Erreur lors du recuperation de l'intervention "
+      ).send(res);
+    }
+  }
+
+  async FinirService(req, res, next) {
+    try {
+      const { serviceId, interventionId } = req.body
+      const intervention = await interventionService.FinirService(serviceId, interventionId);
+      new ApiResponse(
+          200,
+          intervention,
+          "Finir service avec succes"
       ).send(res);
     } catch (error) {
       new ApiResponse(

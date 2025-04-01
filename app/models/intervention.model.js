@@ -35,6 +35,14 @@ const interventionSchema = new mongoose.Schema(
       enum: ["en cours", "facturee", "terminee", "en attente"],
       required: true,
     },
+
+    avancement: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 100,
+      set: (v) => parseFloat(v.toFixed(2)),
+    }
   },
   { timestamps: true }
 );

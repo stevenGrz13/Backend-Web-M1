@@ -175,28 +175,33 @@ class InterventionService extends CrudService {
   async getDetails(id) {
     try {
       const intervention = await Intervention.findById(id)
-          .populate({
-            path: "rendezVousId",
-            populate: [
-              { path: "vehiculeId", model: "Vehicle" },
-              { path: "userClientId", model: "User" },
-              { path: "userMecanicientId", model: "User" },
-            ],
-          })
-          .populate({
-            path: "services.serviceId",
-            model: "Service",
-          })
-          .populate({
-            path: "pieces.pieceId",
-            model: "Piece",
-          })
-          .exec();
+        .populate({
+          path: "rendezVousId",
+          populate: [
+            { path: "vehiculeId", model: "Vehicle" },
+            { path: "userClientId", model: "User" },
+            { path: "userMecanicientId", model: "User" },
+          ],
+        })
+        .populate({
+          path: "services.serviceId",
+          model: "Service",
+        })
+        .populate({
+          path: "pieces.pieceId",
+          model: "Piece",
+        })
+        .exec();
 
       return this.formatInterventionDetails(intervention);
     } catch (error) {
-      console.error(`Erreur lors de la récupération de l'intervention ${id}:`, error);
-      throw new Error(`Erreur serveur lors de la récupération de l'intervention ${id}.`);
+      console.error(
+        `Erreur lors de la récupération de l'intervention ${id}:`,
+        error
+      );
+      throw new Error(
+        `Erreur serveur lors de la récupération de l'intervention ${id}.`
+      );
     }
   }
 
@@ -209,8 +214,8 @@ class InterventionService extends CrudService {
     const mechanical = rendezVous.userMecanicientId || {};
 
     const duration = intervention.services.reduce(
-        (acc, service) => acc + (service.serviceId?.duree || 0),
-        0
+      (acc, service) => acc + (service.serviceId?.duree || 0),
+      0
     );
 
     return {
@@ -234,25 +239,25 @@ class InterventionService extends CrudService {
   async getLatestInterventionByVehicleId(vehicleId, status = "en cours") {
     try {
       const intervention = await Intervention.findOne({ status })
-          .sort({ createdAt: -1 }) // Tri par date de création décroissante
-          .populate({
-            path: "rendezVousId",
-            match: { vehiculeId: vehicleId },
-            populate: [
-              { path: "vehiculeId", model: "Vehicle" },
-              { path: "userClientId", model: "User" },
-              { path: "userMecanicientId", model: "User" },
-            ],
-          })
-          .populate({
-            path: "services.serviceId",
-            model: "Service",
-          })
-          .populate({
-            path: "pieces.pieceId",
-            model: "Piece",
-          })
-          .exec();
+        .sort({ createdAt: -1 }) // Tri par date de création décroissante
+        .populate({
+          path: "rendezVousId",
+          match: { vehiculeId: vehicleId },
+          populate: [
+            { path: "vehiculeId", model: "Vehicle" },
+            { path: "userClientId", model: "User" },
+            { path: "userMecanicientId", model: "User" },
+          ],
+        })
+        .populate({
+          path: "services.serviceId",
+          model: "Service",
+        })
+        .populate({
+          path: "pieces.pieceId",
+          model: "Piece",
+        })
+        .exec();
 
       // Vérifier si l'intervention existe et a un rendezVousId valide
       if (!intervention || !intervention.rendezVousId) {
@@ -261,40 +266,52 @@ class InterventionService extends CrudService {
 
       return this.formatInterventionDetails(intervention);
     } catch (error) {
-      console.error(`Erreur lors de la récupération de l'intervention pour le véhicule ${vehicleId}:`, error);
-      throw new Error(`Erreur serveur lors de la récupération de l'intervention du véhicule ${vehicleId}.`);
+      console.error(
+        `Erreur lors de la récupération de l'intervention pour le véhicule ${vehicleId}:`,
+        error
+      );
+      throw new Error(
+        `Erreur serveur lors de la récupération de l'intervention du véhicule ${vehicleId}.`
+      );
     }
   }
 
   async getByVehicleId(vehicleId, status = "en cours") {
     try {
       const interventions = await Intervention.find({ status })
-          .populate({
-            path: "rendezVousId",
-            match: { vehiculeId: vehicleId },
-            populate: [
-              { path: "vehiculeId", model: "Vehicle" },
-              { path: "userClientId", model: "User" },
-              { path: "userMecanicientId", model: "User" },
-            ],
-          })
-          .populate({
-            path: "services.serviceId",
-            model: "Service",
-          })
-          .populate({
-            path: "pieces.pieceId",
-            model: "Piece",
-          })
-          .exec();
+        .populate({
+          path: "rendezVousId",
+          match: { vehiculeId: vehicleId },
+          populate: [
+            { path: "vehiculeId", model: "Vehicle" },
+            { path: "userClientId", model: "User" },
+            { path: "userMecanicientId", model: "User" },
+          ],
+        })
+        .populate({
+          path: "services.serviceId",
+          model: "Service",
+        })
+        .populate({
+          path: "pieces.pieceId",
+          model: "Piece",
+        })
+        .exec();
 
       // Filtrer les interventions où rendezVousId n'est pas null
-      const filteredInterventions = interventions.filter(i => i.rendezVousId !== null);
+      const filteredInterventions = interventions.filter(
+        (i) => i.rendezVousId !== null
+      );
 
       return filteredInterventions.map(this.formatInterventionDetails);
     } catch (error) {
-      console.error(`Erreur lors de la récupération des interventions pour le véhicule ${vehicleId}:`, error);
-      throw new Error(`Erreur serveur lors de la récupération des interventions du véhicule ${vehicleId}.`);
+      console.error(
+        `Erreur lors de la récupération des interventions pour le véhicule ${vehicleId}:`,
+        error
+      );
+      throw new Error(
+        `Erreur serveur lors de la récupération des interventions du véhicule ${vehicleId}.`
+      );
     }
   }
 
@@ -324,7 +341,7 @@ class InterventionService extends CrudService {
 
     chiffreaffaire = chiffreaffaire.toFixed(2);
 
-    if(demande == "pourcentage"){
+    if (demande == "pourcentage") {
       pourcentage.forEach((value, key) => {
         let newValue = (value * 100) / chiffreaffaire;
         pourcentage.set(key, newValue);
@@ -348,9 +365,30 @@ class InterventionService extends CrudService {
 
     chiffreaffaire = chiffreaffaire.toFixed(2);
 
-    console.log('chiffre affaire = ', chiffreaffaire);
+    console.log("chiffre affaire = ", chiffreaffaire);
 
-    return { chiffreAffaire : chiffreaffaire }
+    return { chiffreAffaire: chiffreaffaire };
+  }
+
+  async FinirService(serviceId, interventionId) {
+    let intervention = await this.getById(interventionId);
+    if (!intervention) throw new Error("Intervention non trouvée");
+
+    let nombreServiceFinis = 0;
+
+    intervention.services = intervention.services.map((service) => {
+      if (service.serviceId.toString() === serviceId.toString()) {
+        service.etat = "fini";
+      }
+      if (service.etat === "fini") {
+        nombreServiceFinis++;
+      }
+      return service;
+    });
+
+    intervention.avancement =
+      (nombreServiceFinis * 100) / intervention.services.length;
+    return await this.update(interventionId, intervention);
   }
 }
 
