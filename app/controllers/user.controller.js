@@ -54,7 +54,8 @@ class UserController extends CrudController {
 
       return res.status(200).json(userWithoutPassword);
     } catch (error) {
-      new ApiResponse(500, null, "Erreur lors de lu login").send(res);
+      console.log("error controller ===== ", error)
+      new ApiResponse(500, null, error.message).send(res);
     }
   }
 }

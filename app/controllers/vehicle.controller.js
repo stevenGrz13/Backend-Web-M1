@@ -10,13 +10,22 @@ class VehicleController extends CrudController {
   }
 
   async getByClientId(req, res) {
+    console.log("salut")
     try {
-      const vehicles = await vehicleService.getVehiclesByClientId(
-        req.params.clientId
+      const { clientId } = req.params;
+      const page = parseInt(req.query.page, 10) || 1;
+      const limit = parseInt(req.query.limit, 10) || 10;
+      // const { page = 1, limit = 10 } = req.query;
+
+      const {data, pagination} = await vehicleService.getVehiclesByClientId(
+          clientId,
+          {page, limit}
       );
-      new ApiResponse(200, vehicles, "Vehicles got successfully").send(res);
+
+      ApiResponse.paginate(res, data, pagination, "Vehicles got successfully")
     } catch (error) {
-      new ApiResponse(500, null, "Error during fecthing vehicle by client Id").send(res);
+      console.error("Error during fetching vehicle by client Id:", error);
+      new ApiResponse(500, null, "Error during fetching vehicle by client Id").send(res);
     }
   }
 }

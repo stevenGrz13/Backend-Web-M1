@@ -15,7 +15,7 @@ const vehicleSchema = new mongoose.Schema(
     immatriculation: { type: String, required: true },
     status: {
       type: String,
-      enum: ["non operationnel", "opperationnel"],
+      enum: ["non operationnel", "operationnel"],
       required: true,
     },
   },

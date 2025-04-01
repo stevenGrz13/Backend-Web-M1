@@ -57,8 +57,12 @@ class UserService extends CrudService {
     if (!email || !password || !roleId) {
       throw new Error("Tous les champs sont requis.");
     }
-    const user = await User.findOne({ email, password, roleId });
+
+    const user = await User.findOne({ email, password, roleId })
+        .populate('roleId', 'nom _id');
+    console.log("user = ", user)
     if (!user) {
+      // console.log("error")
       throw new Error("Aucun utilisateur trouvé avec ces informations.");
     }
     return user;

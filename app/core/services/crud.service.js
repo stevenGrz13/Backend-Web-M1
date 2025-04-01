@@ -35,6 +35,8 @@ class CrudService {
       this.model.countDocuments(),
     ]);
 
+
+
     const totalPages = Math.ceil(total / limit);
     const hasNext = page < totalPages;
     const hasPrev = page > 1;
