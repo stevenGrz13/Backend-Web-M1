@@ -1,11 +1,10 @@
-
-
 const Intervention = require("../models/intervention.model");
 const logger = require("../../utils/logger");
 const CrudService = require("../core/services/crud.service");
 const factureService = require("../services/facture.service");
 const serviceService = require("../services/services.service");
-const RendezVous = require("../models/rendezvous.model")
+const RendezVous = require("../models/rendezvous.model");
+const Facture = require("../models/facture.model");
 class InterventionService extends CrudService {
   constructor() {
     super(Intervention);
@@ -17,42 +16,56 @@ class InterventionService extends CrudService {
 
       // 1. Trouver les rendez-vous associés au mécanicien
       const rendezVousIds = await RendezVous.find({
-        userMecanicientId: mechanicId
-      }).select('_id');
+        userMecanicientId: mechanicId,
+      }).select("_id");
 
       // 2. Trouver les interventions correspondantes
       const [interventions, total] = await Promise.all([
         Intervention.find({
-          rendezVousId: { $in: rendezVousIds.map(r => r._id) }
+          rendezVousId: { $in: rendezVousIds.map((r) => r._id) },
         })
-            .populate({
-              path: 'rendezVousId',
-              populate: [
-                { path: 'userClientId', model: 'User', select: 'name firstName email' },
-                { path: 'userMecanicientId', model: 'User', select: 'name firstName email' },
-                { path: 'vehiculeId', model: 'Vehicle' }
-              ]
-            })
-            .populate('services.serviceId') // Populate les services directement
-            .skip(skip)
-            .limit(limit)
-            .lean()
-            .exec(),
+          .populate({
+            path: "rendezVousId",
+            populate: [
+              {
+                path: "userClientId",
+                model: "User",
+                select: "name firstName email",
+              },
+              {
+                path: "userMecanicientId",
+                model: "User",
+                select: "name firstName email",
+              },
+              { path: "vehiculeId", model: "Vehicle" },
+            ],
+          })
+          .populate("services.serviceId") // Populate les services directement
+          .skip(skip)
+          .limit(limit)
+          .lean()
+          .exec(),
 
         Intervention.countDocuments({
-          rendezVousId: { $in: rendezVousIds.map(r => r._id) }
-        })
+          rendezVousId: { $in: rendezVousIds.map((r) => r._id) },
+        }),
       ]);
 
       // 3. Transformer les données avec le calcul de estimateTime
-      const formattedData = interventions.map(intervention => {
+      const formattedData = interventions.map((intervention) => {
         // Calculer la somme des durées des services
-        const estimateTime = intervention.services.reduce((total, serviceItem) => {
-          if (serviceItem.etat === "en cours" && serviceItem.serviceId?.duree) {
-            return total + serviceItem.serviceId.duree;
-          }
-          return total;
-        }, 0);
+        const estimateTime = intervention.services.reduce(
+          (total, serviceItem) => {
+            if (
+              serviceItem.etat === "en cours" &&
+              serviceItem.serviceId?.duree
+            ) {
+              return total + serviceItem.serviceId.duree;
+            }
+            return total;
+          },
+          0
+        );
 
         return {
           _id: intervention._id,
@@ -62,11 +75,11 @@ class InterventionService extends CrudService {
           status: intervention.status,
           estimateTime, // La somme des durées des services
           avancement: intervention.avancement,
-          services: intervention.services.map(s => ({
+          services: intervention.services.map((s) => ({
             serviceId: s.serviceId,
-            etat: s.etat
+            etat: s.etat,
           })),
-          pieces: intervention.pieces
+          pieces: intervention.pieces,
         };
       });
 
@@ -87,8 +100,10 @@ class InterventionService extends CrudService {
         },
       };
     } catch (error) {
-      console.error('Error in getAllByMechanic:', error);
-      throw new Error(`Erreur lors de la récupération des interventions: ${error.message}`);
+      console.error("Error in getAllByMechanic:", error);
+      throw new Error(
+        `Erreur lors de la récupération des interventions: ${error.message}`
+      );
     }
   }
 
@@ -208,6 +223,44 @@ class InterventionService extends CrudService {
       })
       .exec();
     return interventions;
+  }
+
+  async getBlocAllFacture() {
+    const factures = await Facture.find({ statut: "payee" })
+      .populate({
+        path: "services.serviceId",
+        model: "Service",
+      })
+      .populate({
+        path: "pieces.pieceId",
+        model: "Piece",
+      })
+      .exec();
+    return factures;
+  }
+
+  async getBlocTodayFacture() {
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const factures = await Facture.find({
+      date: { $gte: startOfDay, $lt: endOfDay },
+      statut: "payee",
+    })
+      .populate({
+        path: "services.serviceId",
+        model: "Service",
+      })
+      .populate({
+        path: "pieces.pieceId",
+        model: "Piece",
+      })
+      .exec();
+
+    return factures;
   }
 
   async getOngoingInterventionForDashboard() {
@@ -407,7 +460,8 @@ class InterventionService extends CrudService {
   }
 
   async statChiffreAffaireByService(demande) {
-    const interventions = await this.getBlocAllIntervention("facturee");
+    const interventions = await this.getBlocAllFacture();
+
     let chiffreaffaire = 0;
 
     const pourcentage = new Map();
@@ -443,22 +497,46 @@ class InterventionService extends CrudService {
     return pourcentageObj;
   }
 
-  async totalRevenuParService() {
-    const interventions = await this.getBlocAllIntervention();
-    let chiffreaffaire = 0;
+  // async totalRevenuParService() {
+  //   const interventions = await this.getBlocAllIntervention();
+  //   let chiffreaffaire = 0;
 
-    for (let i = 0; i < interventions.length; i++) {
-      for (let z = 0; z < interventions[i].services.length; z++) {
-        const service = interventions[i].services[z].serviceId;
-        chiffreaffaire += parseFloat(service.prix) || 0;
+  //   for (let i = 0; i < interventions.length; i++) {
+  //     for (let z = 0; z < interventions[i].services.length; z++) {
+  //       const service = interventions[i].services[z].serviceId;
+  //       chiffreaffaire += parseFloat(service.prix) || 0;
+  //     }
+  //   }
+
+  //   chiffreaffaire = chiffreaffaire.toFixed(2);
+
+  //   console.log("chiffre affaire = ", chiffreaffaire);
+
+  //   return { chiffreAffaire: chiffreaffaire };
+  // }
+
+  async totalRevenuToday() {
+    const facture = await this.getBlocTodayFacture();
+    let total = 0;
+
+    for (let i = 0; i < facture.length; i++) {
+      total += Number(facture[i].total);
+    }
+
+    return { chiffreAffaire: Number(total.toFixed(2)) };
+  }
+
+  async totalRevenuParService() {
+    const facture = await this.getBlocAllFacture();
+    let total = 0;
+
+    for (let i = 0; i < facture.length; i++) {
+      for (let z = 0; z < facture[i].services.length; z++) {
+        total += parseFloat(facture[i].services[z].prix);
       }
     }
 
-    chiffreaffaire = chiffreaffaire.toFixed(2);
-
-    console.log("chiffre affaire = ", chiffreaffaire);
-
-    return { chiffreAffaire: chiffreaffaire };
+    return { chiffreAffaire: total.toFixed(2) };
   }
 
   async FinirService(serviceId, interventionId) {
@@ -477,8 +555,8 @@ class InterventionService extends CrudService {
       return service;
     });
 
-    if (nombreServiceFinis === intervention.services.length){
-      intervention.status = 'terminee'
+    if (nombreServiceFinis === intervention.services.length) {
+      intervention.status = "terminee";
     }
 
     intervention.avancement =
@@ -486,7 +564,7 @@ class InterventionService extends CrudService {
 
     await this.update(interventionId, intervention);
 
-    if(intervention.avancement >= 100){
+    if (intervention.avancement >= 100) {
       const facture = await this.finalizeIntervention(interventionId);
     }
 

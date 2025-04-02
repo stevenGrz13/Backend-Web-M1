@@ -217,6 +217,27 @@ class InterventionController extends CrudController {
     }
   }
 
+  async totalRevenueToday(req, res, next) {
+    try {
+      const intervention = await interventionService.totalRevenuToday();
+
+      new ApiResponse(
+        200,
+        intervention,
+        "total revenue today"
+      ).send(res);
+
+    } catch (error) {
+
+      new ApiResponse(
+        500,
+        null,
+        "Erreur lors du total revenue today"
+      ).send(res);
+
+    }
+  }
+
   async getOngoingInterventionForDashboard(req, res, next) {
     try {
       const intervention = await interventionService.getOngoingInterventionForDashboard();
@@ -280,6 +301,25 @@ class InterventionController extends CrudController {
           200,
           intervention,
           "Action réussi"
+      ).send(res);
+    } catch (error) {
+      new ApiResponse(
+          500,
+          null,
+          "Erreur lors du recuperation de l'intervention "
+      ).send(res);
+    }
+  }
+
+  ///////
+
+  async getFactures(req, res, next) {
+    try {
+      const intervention = await interventionService.getBlocAllFacture();
+      new ApiResponse(
+          200,
+          intervention,
+          "details de l'intervention "
       ).send(res);
     } catch (error) {
       new ApiResponse(
