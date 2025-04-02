@@ -234,7 +234,6 @@ class InterventionController extends CrudController {
     }
   }
 
-
   async getDetails(req, res, next) {
     try {
       const {id} = req.params
@@ -286,6 +285,19 @@ class InterventionController extends CrudController {
           500,
           null,
           "Erreur lors du recuperation de l'intervention "
+      ).send(res);
+    }
+  }
+
+  async getPlanning(req, res) {
+    try {
+      const rendezVous = await RendezVousService.fetchPlannings();
+      new ApiResponse(200, rendezVous, "Get planning avec success").send(res);
+    } catch (error) {
+      new ApiResponse(
+        500,
+        null,
+        "Erreur lors du get planning"
       ).send(res);
     }
   }
