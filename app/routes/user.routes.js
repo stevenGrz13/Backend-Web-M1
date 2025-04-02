@@ -13,6 +13,7 @@ const authMiddleware = require('../../middleware/auth');
 
 router.get('/nombremecanicien', userController.getNombreMecanicien);
 router.get('/clients', userController.getClients);
+router.get('/mechanics/', userController.getMechanics);
 router.post('/mecanicienlibrebydate', userController.getMecanicienLibreByDate);
 router.post('/allbyrole', userController.getUsersByRole);
 router.post('/', userController.create.bind(userController));

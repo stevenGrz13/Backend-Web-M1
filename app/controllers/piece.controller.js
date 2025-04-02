@@ -23,6 +23,32 @@ class PieceController extends CrudController {
       ).send(res);
     }
   }
+
+  async updateQuantitiesBulk(req, res){
+    try {
+      const { updates } = req.body;
+
+
+      // Exécuter les opérations en lot
+      const result = await pieceService.updateQuantitiesBulk(updates);
+
+      new ApiResponse(200, result.modifiedCount, "Mises à jour effectuées avec succès")
+          .send(res)
+
+      // res.status(200).json({
+      //   message: "Mises à jour effectuées avec succès",
+      //   modifiedCount: result.modifiedCount
+      // });
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour par lot:", error);
+
+      new ApiResponse(500, null, "Erreur serveur").send(res)
+      // res.status(500).json({
+      //   message: "Erreur serveur",
+      //   error: error.message
+      // });
+    }
+  }
 }
 
 module.exports = new PieceController();

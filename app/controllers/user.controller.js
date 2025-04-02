@@ -12,7 +12,18 @@ class UserController extends CrudController {
     try {
       const page = parseInt(req.query.page, 10) || 1;
       const limit = parseInt(req.query.limit, 10) || 10;
-      const {data, pagination} = await userService.getAllPaginate({page, limit});
+      const {data, pagination} = await userService.findAllPaginateByRole("client",{page, limit});
+      ApiResponse.paginate(res, data, pagination, "Récupération des clients...")
+    } catch (error) {
+      new ApiResponse(500, null, "Erreur lors de la récupération des users by role").send(res);
+    }
+  }
+
+  async getMechanics(req, res){
+    try {
+      const page = parseInt(req.query.page, 10) || 1;
+      const limit = parseInt(req.query.limit, 10) || 10;
+      const {data, pagination} = await userService.findAllPaginateByRole("mechanic",{page, limit});
       ApiResponse.paginate(res, data, pagination, "Récupération des clients...")
     } catch (error) {
       new ApiResponse(500, null, "Erreur lors de la récupération des users by role").send(res);

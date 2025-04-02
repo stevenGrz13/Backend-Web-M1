@@ -23,6 +23,17 @@ class FactureController extends CrudController {
     }
   }
 
+  async getDetails(req, res){
+    try{
+      const { id } = req.params;
+      const data = await factureService.getDetailsById(id);
+
+      new ApiResponse(200, data, "detail du facture est un success").send(res)
+    }catch (error){
+      new ApiResponse(500, null, "erreur lors du recuperation du facture").send(res)
+    }
+  }
+
   async getAllByClientId(req, res, next) {
     try {
       const { clientId } = req.params;

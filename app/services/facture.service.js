@@ -130,6 +130,77 @@ class FactureService extends CrudService {
   //   return factures;
   // }
 
+  async getDetailsById(invoiceId) {
+    try {
+      // Récupérer la facture avec les informations nécessaires
+      const facture = await Facture.findById({_id: invoiceId})
+          .populate('userClientId', 'nom email telephone') // Informations client de base
+          .populate({
+            path: 'services.serviceId',
+            model: 'Service',
+            select: 'nom prix description'
+          })
+          .populate({
+            path: 'pieces.pieceId',
+            model: 'Piece',
+            select: 'nom prixunitaire'
+          })
+          .exec();
+
+      if (!facture) {
+        throw new Error('Facture non trouvée');
+      }
+
+      // Récupérer les détails des services
+      const serviceDetails = facture.services.map(service => ({
+        nom: service.serviceId.nom,
+        prix: parseFloat(service.serviceId.prix),
+        description: service.serviceId.description,
+        etat: service.etat
+      }));
+
+      // Calculer le total des services
+      const servicesTotal = serviceDetails.reduce((total, service) => total + service.prix, 0);
+
+      // Récupérer les détails des pièces
+      const pieceDetails = facture.pieces.map(piece => ({
+        nom: piece.pieceId.nom,
+        quantite: piece.quantite,
+        prixunitaire: parseFloat(piece.pieceId.prixunitaire),
+        prixTotal: piece.quantite * parseFloat(piece.pieceId.prixunitaire)
+      }));
+
+      // Calculer le total des pièces
+      const piecesTotal = pieceDetails.reduce((total, piece) => total + piece.prixTotal, 0);
+
+      // Calculer le montant total
+      const montantTotal = servicesTotal + piecesTotal;
+
+      // Construire l'objet de réponse
+      const invoiceDetail = {
+        date: facture.date,
+        status: facture.statut,
+        factureId: facture._id,
+        nomClient: facture.userClientId.nom,
+        emailClient: facture.userClientId.email,
+        numeroClient: facture.userClientId.telephone,
+        services: {
+          details: serviceDetails,
+          total: parseFloat(servicesTotal.toFixed(2))
+        },
+        pieces: {
+          details: pieceDetails,
+          total: parseFloat(piecesTotal.toFixed(2))
+        },
+        montant: parseFloat(montantTotal.toFixed(2))
+      };
+
+      return invoiceDetail;
+    } catch (error) {
+      console.error('Erreur lors de la récupération des détails de la facture:', error);
+      throw error;
+    }
+  }
   /// POPULATED GET FACTURE BY CLIENT ID
 
   async getBlocFactureByClientId(clientId) {
