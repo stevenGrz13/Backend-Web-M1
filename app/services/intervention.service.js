@@ -11,16 +11,16 @@ class InterventionService extends CrudService {
     super(Intervention);
   }
 
-  async getAllByMechanic(mechanicId, {page = 1, limit = 10}) {
+  async getAllByMechanic(mechanicId, { page = 1, limit = 10 }) {
     try {
       const skip = (page - 1) * limit;
 
-      // D'abord trouver les rendez-vous associés au mécanicien
+      // 1. Trouver les rendez-vous associés au mécanicien
       const rendezVousIds = await RendezVous.find({
         userMecanicientId: mechanicId
       }).select('_id');
 
-      // Ensuite trouver les interventions correspondantes
+      // 2. Trouver les interventions correspondantes
       const [interventions, total] = await Promise.all([
         Intervention.find({
           rendezVousId: { $in: rendezVousIds.map(r => r._id) }
@@ -33,6 +33,7 @@ class InterventionService extends CrudService {
                 { path: 'vehiculeId', model: 'Vehicle' }
               ]
             })
+            .populate('services.serviceId') // Populate les services directement
             .skip(skip)
             .limit(limit)
             .lean()
@@ -43,16 +44,31 @@ class InterventionService extends CrudService {
         })
       ]);
 
-      // Transformer les données
-      const formattedData = interventions.map(intervention => ({
-        _id: intervention._id,
-        client: intervention.rendezVousId?.userClientId,
-        mecanicien: intervention.rendezVousId?.userMecanicientId,
-        vehicle: intervention.rendezVousId?.vehiculeId,
-        status: intervention.status,
-        estimateTime: intervention.createdAt
-      }));
+      // 3. Transformer les données avec le calcul de estimateTime
+      const formattedData = interventions.map(intervention => {
+        // Calculer la somme des durées des services
+        const estimateTime = intervention.services.reduce((total, serviceItem) => {
+          // serviceItem.serviceId est maintenant peuplé grâce au populate
+          return total + (serviceItem.serviceId?.duree || 0);
+        }, 0);
 
+        return {
+          _id: intervention._id,
+          client: intervention.rendezVousId?.userClientId,
+          mecanicien: intervention.rendezVousId?.userMecanicientId,
+          vehicle: intervention.rendezVousId?.vehiculeId,
+          status: intervention.status,
+          estimateTime, // La somme des durées des services
+          avancement: intervention.avancement,
+          services: intervention.services.map(s => ({
+            serviceId: s.serviceId,
+            etat: s.etat
+          })),
+          pieces: intervention.pieces
+        };
+      });
+
+      // 4. Pagination
       const totalPages = Math.ceil(total / limit);
       const hasNext = page < totalPages;
       const hasPrev = page > 1;

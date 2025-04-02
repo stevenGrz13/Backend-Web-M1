@@ -279,7 +279,7 @@ class InterventionController extends CrudController {
       new ApiResponse(
           200,
           intervention,
-          "Finir service avec succes"
+          "Action réussi"
       ).send(res);
     } catch (error) {
       new ApiResponse(

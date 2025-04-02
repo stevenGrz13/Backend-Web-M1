@@ -59,9 +59,9 @@ class RendezVousService extends CrudService {
     const dataFormatted = data.map(item => ({
       _id: item._id,
       start: item.date,
-      clientName: `${item.userClientId.firstName} ${item.userClientId.name}`,
+      client: item.userClientId,
       status: item.statut,
-      mechanical: `${item.userMecanicientId.firstName} ${item.userMecanicientId.name}`,
+      mechanical: item.userMecanicientId,
     }));
 
     // Calcul de la pagination
