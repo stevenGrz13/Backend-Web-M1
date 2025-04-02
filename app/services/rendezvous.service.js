@@ -7,56 +7,57 @@ class RendezVousService extends CrudService {
     super(RendezVous);
   }
 
-  async getInfosByUser(userType, userId, {page = 1, limit = 10}) {
+  async getInfosByUser(userType, userId, { page = 1, limit = 10 }) {
     try {
       const skip = (page - 1) * limit;
 
       // Détermine le champ de recherche en fonction du type d'utilisateur
-      const queryField = userType === 'mechanic'
-          ? 'userMecanicientId'
-          : 'userClientId';
+      const queryField =
+        userType === "mechanic" ? "userMecanicientId" : "userClientId";
 
       const query = { [queryField]: userId };
 
       const [data, total] = await Promise.all([
         RendezVous.find(query)
-            .skip(skip)
-            .limit(limit)
-            .populate('userClientId', '-password')
-            .populate('userMecanicientId', '-password')
-            .populate('vehiculeId')
-            .populate({
-              path: 'services.serviceId',
-              model: 'Service'
-            })
-            .populate({
-              path: 'pieces.piece',
-              model: 'Piece'
-            })
-            .exec(),
+          .skip(skip)
+          .limit(limit)
+          .populate("userClientId", "-password")
+          .populate("userMecanicientId", "-password")
+          .populate("vehiculeId")
+          .populate({
+            path: "services.serviceId",
+            model: "Service",
+          })
+          .populate({
+            path: "pieces.piece",
+            model: "Piece",
+          })
+          .exec(),
         RendezVous.countDocuments(query), // Important d'utiliser le même query pour le count
       ]);
 
       return this.formatPaginatedResponse(data, total, page, limit);
     } catch (error) {
-      throw new Error(`Erreur lors de la récupération des rendez-vous: ${error.message}`);
+      throw new Error(
+        `Erreur lors de la récupération des rendez-vous: ${error.message}`
+      );
     }
   }
 
-// Les méthodes originales deviennent alors des wrappers simples
+  // Les méthodes originales deviennent alors des wrappers simples
   async getInfosByMechanic(mechanicId, pagination) {
-    return this.getInfosByUser('mechanic', mechanicId, pagination);
+    return this.getInfosByUser("mechanic", mechanicId, pagination);
   }
 
   async getInfosByClient(clientId, pagination) {
-    return this.getInfosByUser('client', clientId, pagination);
+    return this.getInfosByUser("client", clientId, pagination);
   }
 
   // utils/responseFormatter.js
 
   formatPaginatedResponse(data, total, page, limit) {
     // Formatage des données
-    const dataFormatted = data.map(item => ({
+    const dataFormatted = data.map((item) => ({
       _id: item._id,
       start: item.date,
       clientName: `${item.userClientId.firstName} ${item.userClientId.name}`,
@@ -83,35 +84,36 @@ class RendezVousService extends CrudService {
     };
   }
 
-  async getInfos({page = 1, limit = 10}) {
+  async getInfos({ page = 1, limit = 10 }) {
     try {
-
       let dataResponse = {};
 
       const skip = (page - 1) * limit;
 
       const [data, total] = await Promise.all([
         RendezVous.find()
-            .skip(skip)
-            .limit(limit)
-            .populate('userClientId', '-password') // Peuple le client (en excluant le mot de passe)
-            .populate('userMecanicientId', '-password') // Peuple le mécanicien (en excluant le mot de passe)
-            .populate('vehiculeId') // Peuple le véhicule
-            .populate({
-              path: 'services.serviceId', // Peuple les services dans le tableau
-              model: 'Service'
-            })
-            .populate({
-              path: 'pieces.piece', // Peuple les pièces dans le tableau
-              model: 'Piece'
-            })
-            .exec(),
+          .skip(skip)
+          .limit(limit)
+          .populate("userClientId", "-password") // Peuple le client (en excluant le mot de passe)
+          .populate("userMecanicientId", "-password") // Peuple le mécanicien (en excluant le mot de passe)
+          .populate("vehiculeId") // Peuple le véhicule
+          .populate({
+            path: "services.serviceId", // Peuple les services dans le tableau
+            model: "Service",
+          })
+          .populate({
+            path: "pieces.piece", // Peuple les pièces dans le tableau
+            model: "Piece",
+          })
+          .exec(),
         RendezVous.countDocuments(),
       ]);
 
       return this.formatPaginatedResponse(data, total, page, limit);
     } catch (error) {
-      throw new Error(`Erreur lors de la récupération des véhicules: ${error.message}`);
+      throw new Error(
+        `Erreur lors de la récupération des véhicules: ${error.message}`
+      );
     }
   }
 
@@ -180,22 +182,21 @@ class RendezVousService extends CrudService {
   }
 
   async genererRendezVousAvecSuggestion(data) {
-    try{
+    try {
       const userService = require("../services/user.service");
       const date = data.date;
       const mecanicienLibre = await userService.findMecanicienLibreByDate(date);
-      if(mecanicienLibre.nombre > 0){
+      if (mecanicienLibre.nombre > 0) {
         var mecanicienId = mecanicienLibre.mecaniciens[0]._id;
         data.userMecanicientId = mecanicienId.toString();
         const rendezVous = await RendezVous.create(data);
         return rendezVous;
-      }
-      else{
+      } else {
         const message = "Aucun Mecanicien Libre pour votre Date";
         return message;
       }
-    }catch (error){
-      console.error(error)
+    } catch (error) {
+      console.error(error);
       throw error;
     }
   }
@@ -208,11 +209,14 @@ class RendezVousService extends CrudService {
 
       return rendezVous.map((rdv) => {
         const start = new Date(rdv.date);
-        
-        let totalDuration = rdv.services.reduce((sum, service) => sum + (service.serviceId?.duration || 0), 0);
-  
+
+        let totalDuration = rdv.services.reduce(
+          (sum, service) => sum + (service.serviceId?.duration || 0),
+          0
+        );
+
         const end = new Date(start.getTime() + totalDuration * 60000); // Convertir minutes en millisecondes
-  
+
         return {
           id: rdv._id,
           name: rdv.userClientId?.name || "Client inconnu",
@@ -227,7 +231,7 @@ class RendezVousService extends CrudService {
       throw error;
     }
   }
-  
+
   mapStatusClass(status) {
     switch (status) {
       case "confirmé":
@@ -236,6 +240,61 @@ class RendezVousService extends CrudService {
         return "danger";
       default:
         return "warning";
+    }
+  }
+
+  async getDetail(rendezvousId) {
+    try {
+      console.log("Début de getDetail avec rendezvousId:", rendezvousId);
+
+      const data = await RendezVous.findOne({ _id: rendezvousId })
+        .populate("userClientId", "-password")
+        .populate("userMecanicientId", "-password")
+        .populate({
+          path: "services.serviceId", 
+          model: "Service",
+        })
+        .exec();
+
+      if (!data) {
+        console.log("Aucun rendez-vous trouvé avec cet ID.");
+        return null;
+      }
+
+      const appointment = {
+        _id: data._id,
+        name: data.nom || undefined,
+        client: data.userClientId
+          ? {
+              _id: data.userClientId._id,
+              name: data.userClientId.name,
+            }
+          : undefined,
+        description: data.description || undefined,
+        start: data.date,
+        status: data.statut,
+        mechanical: data.userMecanicientId
+          ? {
+              _id: data.userMecanicientId._id,
+              name: data.userMecanicientId.name,
+            }
+          : undefined,
+        services: data.services
+          ? data.services.map((s) => ({
+              _id: s.serviceId._id,
+              name: s.serviceId.nom,
+              price: s.serviceId.prix,
+              duration: s.serviceId.duree,
+            }))
+          : [],
+      };
+      
+      return appointment;
+    } catch (error) {
+      console.error("Erreur lors de la récupération du rendez-vous:", error);
+      throw new Error(
+        `Erreur lors de la récupération du rendez-vous: ${error.message}`
+      );
     }
   }
 }
