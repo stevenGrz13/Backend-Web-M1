@@ -169,11 +169,13 @@ class RendezVousController extends CrudController {
       );
       new ApiResponse(200, rendezVous, "Annulation RDV").send(res);
     } catch (error) {
+      // console.log('error = ', error)
       new ApiResponse(
         500,
         null,
-        "Erreur lors de l'annulation d'un Rendez Vous"
+        error.message
       ).send(res);
+      // throw error;
     }
   }
 

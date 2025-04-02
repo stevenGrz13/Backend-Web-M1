@@ -48,8 +48,10 @@ class InterventionService extends CrudService {
       const formattedData = interventions.map(intervention => {
         // Calculer la somme des durées des services
         const estimateTime = intervention.services.reduce((total, serviceItem) => {
-          // serviceItem.serviceId est maintenant peuplé grâce au populate
-          return total + (serviceItem.serviceId?.duree || 0);
+          if (serviceItem.etat === "en cours" && serviceItem.serviceId?.duree) {
+            return total + serviceItem.serviceId.duree;
+          }
+          return total;
         }, 0);
 
         return {
@@ -295,10 +297,17 @@ class InterventionService extends CrudService {
     const client = rendezVous.userClientId || {};
     const mechanical = rendezVous.userMecanicientId || {};
 
-    const duration = intervention.services.reduce(
-      (acc, service) => acc + (service.serviceId?.duree || 0),
-      0
-    );
+    const duration = intervention.services.reduce((total, serviceItem) => {
+      if (serviceItem.etat === "en cours" && serviceItem.serviceId?.duree) {
+        return total + serviceItem.serviceId.duree;
+      }
+      return total;
+    }, 0);
+
+    // const duration = intervention.services.reduce(
+    //   (acc, service) => acc + (service.serviceId?.duree || 0),
+    //   0
+    // );
 
     return {
       _id: intervention._id,
@@ -318,9 +327,9 @@ class InterventionService extends CrudService {
     };
   }
 
-  async getLatestInterventionByVehicleId(vehicleId, status = "en cours") {
+  async getLatestInterventionByVehicleId(vehicleId) {
     try {
-      const intervention = await Intervention.findOne({ status })
+      const intervention = await Intervention.findOne()
         .sort({ createdAt: -1 }) // Tri par date de création décroissante
         .populate({
           path: "rendezVousId",
@@ -468,9 +477,17 @@ class InterventionService extends CrudService {
       return service;
     });
 
+    if (nombreServiceFinis === intervention.services.length){
+      intervention.status = 'terminee'
+    }
+
     intervention.avancement =
       (nombreServiceFinis * 100) / intervention.services.length;
-    return await this.update(interventionId, intervention);
+
+    await this.update(interventionId, intervention);
+
+
+    return await this.getDetails(interventionId);
   }
 }
 

@@ -11,7 +11,7 @@ router.post('/finirService', interventionController.FinirService);
 router.get('/totalRevenueService', interventionController.totalRevenueService);
 router.get('/statChiffreAffaireByService/:demande', interventionController.statChiffreAffaireByService);
 router.get('/getOngoingInterventionForDashboard', interventionController.getOngoingInterventionForDashboard);
-router.get('/:id/details', interventionController.getDetails);
+router.get('/details/:id', interventionController.getDetails);
 router.get('/latest/vehicles/:vehicleId', interventionController.getLatestByVehicleId);
 router.get('/interventionNumber', interventionController.getNumbersOfInterventions);
 router.get('/interventionNumberParEtat', interventionController.findNombreInterventionParEtat);

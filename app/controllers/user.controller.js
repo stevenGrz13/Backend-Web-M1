@@ -64,6 +64,8 @@ class UserController extends CrudController {
 
       const { password: _, ...userWithoutPassword } = user.toObject();
 
+      console.log("user without password === ", userWithoutPassword)
+
       return res.status(200).json(userWithoutPassword);
     } catch (error) {
       console.log("error controller ===== ", error)

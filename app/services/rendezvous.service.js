@@ -143,33 +143,63 @@ class RendezVousService extends CrudService {
   }
 
   async annulerRendezVous(rendezVousId) {
-    return await RendezVous.findByIdAndUpdate(
-      rendezVousId,
-      { statut: "annulé" },
-      { new: true }
+    const interventionExistante = await Intervention.findOne({
+      rendezVousId: rendezVousId
+    });
+
+    if (interventionExistante) {
+      throw new Error("Impossible d'annuler ce rendez-vous car une intervention est déjà en cours");
+    }
+
+    await RendezVous.findByIdAndUpdate(
+        rendezVousId,
+        { statut: "annulé" },
+        { new: true }
     );
+
+    return this.getDetail(rendezVousId);
+    // try{
+    //
+    // }catch (err){
+    //   // console.error(err)
+    //   // throw err;
+    // }
   }
 
   async confirmerRendezVous(rendezVousId) {
-    const confirmationRendezvous = await RendezVous.findByIdAndUpdate(
-      rendezVousId,
-      { statut: "confirmé" },
-      { new: true }
-    )
-      .populate("services.serviceId")
-      .populate("pieces.piece");
-
-    if (!confirmationRendezvous) {
+    let appointment = await RendezVous.findOne({_id: rendezVousId})
+        .populate("services.serviceId")
+        .populate("pieces.piece").exec();
+    if (!appointment){
       throw new Error("Rendez-vous non trouvé");
+    }else if(appointment.statut === "confirmé"){
+      throw new Error("Une intervention est déjà en cours")
     }
+
+    appointment.statut = 'confirmé'
+
+
+    // const confirmationRendezvous = await RendezVous.findByIdAndUpdate(
+    //   rendezVousId,
+    //   { statut: "confirmé" },
+    //   { new: true }
+    // )
+    //   .populate("services.serviceId")
+    //   .populate("pieces.piece");
+    //
+    // if (!confirmationRendezvous) {
+    //   throw new Error("Rendez-vous non trouvé");
+    // }
+
+    await this.update(rendezVousId, appointment);
 
     const intervention = new Intervention({
       rendezVousId,
-      services: confirmationRendezvous.services.map((s) => ({
+      services: appointment.services.map((s) => ({
         serviceId: s.serviceId._id,
         etat: "en cours",
       })),
-      pieces: confirmationRendezvous.pieces.map((p) => ({
+      pieces: appointment.pieces.map((p) => ({
         pieceId: p.piece._id,
         quantite: p.quantite,
       })),
@@ -178,7 +208,7 @@ class RendezVousService extends CrudService {
 
     await intervention.save();
 
-    return { confirmationRendezvous, intervention };
+    return this.getDetail(rendezVousId);
   }
 
   async genererRendezVousAvecSuggestion(data) {
@@ -270,28 +300,19 @@ class RendezVousService extends CrudService {
       const appointment = {
         _id: data._id,
         name: data.nom || undefined,
-        client: data.userClientId
-          ? {
-              _id: data.userClientId._id,
-              name: data.userClientId.name,
-            }
-          : undefined,
+        client: data.userClientId,
         description: data.description || undefined,
         start: data.date,
         serviceTime: duration,
         status: data.statut,
-        mechanical: data.userMecanicientId
-          ? {
-              _id: data.userMecanicientId._id,
-              name: data.userMecanicientId.name,
-            }
-          : undefined,
+        mechanical: data.userMecanicientId,
         services: data.services
           ? data.services.map((s) => ({
               _id: s.serviceId._id,
-              name: s.serviceId.nom,
-              price: s.serviceId.prix,
-              duration: s.serviceId.duree,
+              nom: s.serviceId.nom,
+              prix: s.serviceId.prix,
+              duree: s.serviceId.duree,
+              description: s.serviceId.description
             }))
           : [],
       };

@@ -95,7 +95,7 @@ class UserService extends CrudService {
 
     const user = await User.findOne({ email, password, roleId })
         .populate('roleId', 'nom _id');
-    console.log("user = ", user)
+    // console.log("user = ", user)
     if (!user) {
       // console.log("error")
       throw new Error("Aucun utilisateur trouvé avec ces informations.");

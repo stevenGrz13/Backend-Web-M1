@@ -5,7 +5,7 @@ const router = express.Router();
 
 router.get('/info', rendezVousController.getInfos);
 // router.get('/:id/details', rendezVousController.getInfos);
-router.get('/getPlanning', rendezVousController.getPlanning);
+// router.get('/getPlanning', rendezVousController.getPlanning);
 router.get('/detail/:rendezvousId', rendezVousController.getDetail);
 router.post('/', rendezVousController.genererRendezVousAvecSuggestion);
 router.get('/info/clients/:clientId', rendezVousController.getInfosByClient);
