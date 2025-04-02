@@ -8,41 +8,53 @@ class RendezVousController extends CrudController {
   }
 
   async getInfosByClient(req, res) {
-
     try {
       const { clientId } = req.params;
       const page = parseInt(req.query.page, 10) || 1;
       const limit = parseInt(req.query.limit, 10) || 10;
 
-      const {data, pagination} = await RendezVousService.getInfosByClient(clientId, {page, limit});
-      ApiResponse.paginate(res, data, pagination, "Récupération des rendez-vous détaillés")
+      const { data, pagination } = await RendezVousService.getInfosByClient(
+        clientId,
+        { page, limit }
+      );
+      ApiResponse.paginate(
+        res,
+        data,
+        pagination,
+        "Récupération des rendez-vous détaillés"
+      );
     } catch (error) {
-
       new ApiResponse(
-          500,
-          null,
-          "Erreur lors de la récupération des rendez-vous"
+        500,
+        null,
+        "Erreur lors de la récupération des rendez-vous"
       ).send(res);
       throw error;
     }
   }
 
   async getInfosByMechanic(req, res) {
-
     try {
       // console.log('')
       const { mechanicId } = req.params;
       const page = parseInt(req.query.page, 10) || 1;
       const limit = parseInt(req.query.limit, 10) || 10;
 
-      const {data, pagination} = await RendezVousService.getInfosByMechanic(mechanicId, {page, limit});
-      ApiResponse.paginate(res, data, pagination, "Récupération des rendez-vous détaillés par mécanicien")
+      const { data, pagination } = await RendezVousService.getInfosByMechanic(
+        mechanicId,
+        { page, limit }
+      );
+      ApiResponse.paginate(
+        res,
+        data,
+        pagination,
+        "Récupération des rendez-vous détaillés par mécanicien"
+      );
     } catch (error) {
-
       new ApiResponse(
-          500,
-          null,
-          "Erreur lors de la récupération des rendez-vous"
+        500,
+        null,
+        "Erreur lors de la récupération des rendez-vous"
       ).send(res);
       throw error;
     }
@@ -54,14 +66,21 @@ class RendezVousController extends CrudController {
       const page = parseInt(req.query.page, 10) || 1;
       const limit = parseInt(req.query.limit, 10) || 10;
 
-      const {data, pagination} = await RendezVousService.getInfos({page, limit});
-      ApiResponse.paginate(res, data, pagination, "Récupération des rendez-vous détaillés")
+      const { data, pagination } = await RendezVousService.getInfos({
+        page,
+        limit,
+      });
+      ApiResponse.paginate(
+        res,
+        data,
+        pagination,
+        "Récupération des rendez-vous détaillés"
+      );
     } catch (error) {
-
       new ApiResponse(
-          500,
-          null,
-          "Erreur lors de la récupération des rendez-vous"
+        500,
+        null,
+        "Erreur lors de la récupération des rendez-vous"
       ).send(res);
       throw error;
     }
@@ -69,7 +88,8 @@ class RendezVousController extends CrudController {
 
   async genererRendezVousAvecSuggestion(req, res) {
     try {
-      const rendezVous = await RendezVousService.genererRendezVousAvecSuggestion(req.body);
+      const rendezVous =
+        await RendezVousService.genererRendezVousAvecSuggestion(req.body);
       new ApiResponse(
         200,
         rendezVous,
@@ -173,20 +193,29 @@ class RendezVousController extends CrudController {
     }
   }
 
-
   async getDetail(req, res) {
     try {
-      const rendezVous = await RendezVousService.getDetail(req.params.rendezvousId);
+      const rendezVous = await RendezVousService.getDetail(
+        req.params.rendezvousId
+      );
       new ApiResponse(200, rendezVous, "Get Detail avec success").send(res);
+    } catch (error) {
+      new ApiResponse(500, null, "Erreur lors du get Detail").send(res);
+    }
+  }
+
+  async getPlanning(req, res) {
+    try {
+      const rendezVous = await RendezVousService.fetchPlannings();
+      new ApiResponse(200, rendezVous, "Recuperation des plannings").send(res);
     } catch (error) {
       new ApiResponse(
         500,
         null,
-        "Erreur lors du get Detail"
+        "Erreur lors de la récupération des plannings"
       ).send(res);
     }
   }
-
 }
 
 module.exports = new RendezVousController();
