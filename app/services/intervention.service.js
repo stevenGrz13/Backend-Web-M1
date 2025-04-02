@@ -466,45 +466,6 @@ class InterventionService extends CrudService {
     const valeurderetour = await this.getDetails(interventionId);
     return valeurderetour;
   }
-
-  async fetchPlannings() {
-    try {
-      const rendezVous = await RendezVous.find()
-        .populate("userClientId", "name") // Récupérer seulement le nom du client
-        .populate("services.serviceId", "duree"); // Récupérer la durée des services
-
-      return rendezVous.map((rdv) => {
-        const start = new Date(rdv.date);
-        
-        let totalDuration = rdv.services.reduce((sum, service) => sum + (service.serviceId?.duration || 0), 0);
-  
-        const end = new Date(start.getTime() + totalDuration * 60000); // Convertir minutes en millisecondes
-  
-        return {
-          id: rdv._id,
-          name: rdv.userClientId?.name || "Client inconnu",
-          status: rdv.statut,
-          start,
-          end,
-          statusClass: this.mapStatusClass(rdv.statut),
-        };
-      });
-    } catch (error) {
-      console.error("Erreur lors de la récupération des plannings :", error);
-      throw error;
-    }
-  }
-  
-  mapStatusClass(status) {
-    switch (status) {
-      case "confirmé":
-        return "success";
-      case "annulé":
-        return "danger";
-      default:
-        return "warning";
-    }
-  }
 }
 
 module.exports = new InterventionService();

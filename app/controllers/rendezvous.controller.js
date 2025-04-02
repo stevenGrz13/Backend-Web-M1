@@ -173,6 +173,18 @@ class RendezVousController extends CrudController {
     }
   }
 
+  async getPlanning(req, res) {
+    try {
+      const rendezVous = await RendezVousService.fetchPlannings();
+      new ApiResponse(200, rendezVous, "Get planning avec success").send(res);
+    } catch (error) {
+      new ApiResponse(
+        500,
+        null,
+        "Erreur lors du get planning"
+      ).send(res);
+    }
+  }
 
 }
 
