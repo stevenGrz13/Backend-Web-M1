@@ -7,6 +7,7 @@ const authMiddleware = require('../../middleware/auth');
 
 router.get('/', vehicleController.getAllPaginate.bind(vehicleController));
 router.get('/clients/:clientId', vehicleController.getByClientId);
+router.get('/clientsVehicleNotInIntervention/:clientId', vehicleController.getVehiculeNotInIntervention);
 router.post('/', vehicleController.create.bind(vehicleController));
 router.get('/:id', vehicleController.getById.bind(vehicleController));
 router.put('/:id', vehicleController.update.bind(vehicleController));

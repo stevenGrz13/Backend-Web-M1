@@ -486,6 +486,9 @@ class InterventionService extends CrudService {
 
     await this.update(interventionId, intervention);
 
+    if(intervention.avancement >= 100){
+      const facture = await this.finalizeIntervention(interventionId);
+    }
 
     return await this.getDetails(interventionId);
   }
