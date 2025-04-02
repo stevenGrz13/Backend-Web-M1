@@ -1,9 +1,11 @@
+
+
 const Intervention = require("../models/intervention.model");
 const logger = require("../../utils/logger");
 const CrudService = require("../core/services/crud.service");
 const factureService = require("../services/facture.service");
 const serviceService = require("../services/services.service");
-const RendezVous = require("../models/rendezvous.model");
+const RendezVous = require("../models/rendezvous.model")
 class InterventionService extends CrudService {
   constructor() {
     super(Intervention);
@@ -13,52 +15,60 @@ class InterventionService extends CrudService {
     try {
       const skip = (page - 1) * limit;
 
-      // D'abord trouver les rendez-vous associés au mécanicien
+      // 1. Trouver les rendez-vous associés au mécanicien
       const rendezVousIds = await RendezVous.find({
-        userMecanicientId: mechanicId,
-      }).select("_id");
+        userMecanicientId: mechanicId
+      }).select('_id');
 
-      // Ensuite trouver les interventions correspondantes
+      // 2. Trouver les interventions correspondantes
       const [interventions, total] = await Promise.all([
         Intervention.find({
-          rendezVousId: { $in: rendezVousIds.map((r) => r._id) },
+          rendezVousId: { $in: rendezVousIds.map(r => r._id) }
         })
-          .populate({
-            path: "rendezVousId",
-            populate: [
-              {
-                path: "userClientId",
-                model: "User",
-                select: "name firstName email",
-              },
-              {
-                path: "userMecanicientId",
-                model: "User",
-                select: "name firstName email",
-              },
-              { path: "vehiculeId", model: "Vehicle" },
-            ],
-          })
-          .skip(skip)
-          .limit(limit)
-          .lean()
-          .exec(),
+            .populate({
+              path: 'rendezVousId',
+              populate: [
+                { path: 'userClientId', model: 'User', select: 'name firstName email' },
+                { path: 'userMecanicientId', model: 'User', select: 'name firstName email' },
+                { path: 'vehiculeId', model: 'Vehicle' }
+              ]
+            })
+            .populate('services.serviceId') // Populate les services directement
+            .skip(skip)
+            .limit(limit)
+            .lean()
+            .exec(),
 
         Intervention.countDocuments({
-          rendezVousId: { $in: rendezVousIds.map((r) => r._id) },
-        }),
+          rendezVousId: { $in: rendezVousIds.map(r => r._id) }
+        })
       ]);
 
-      // Transformer les données
-      const formattedData = interventions.map((intervention) => ({
-        _id: intervention._id,
-        client: intervention.rendezVousId?.userClientId,
-        mecanicien: intervention.rendezVousId?.userMecanicientId,
-        vehicle: intervention.rendezVousId?.vehiculeId,
-        status: intervention.status,
-        estimateTime: intervention.createdAt,
-      }));
+      // 3. Transformer les données avec le calcul de estimateTime
+      const formattedData = interventions.map(intervention => {
+        // Calculer la somme des durées des services
+        const estimateTime = intervention.services.reduce((total, serviceItem) => {
+          // serviceItem.serviceId est maintenant peuplé grâce au populate
+          return total + (serviceItem.serviceId?.duree || 0);
+        }, 0);
 
+        return {
+          _id: intervention._id,
+          client: intervention.rendezVousId?.userClientId,
+          mecanicien: intervention.rendezVousId?.userMecanicientId,
+          vehicle: intervention.rendezVousId?.vehiculeId,
+          status: intervention.status,
+          estimateTime, // La somme des durées des services
+          avancement: intervention.avancement,
+          services: intervention.services.map(s => ({
+            serviceId: s.serviceId,
+            etat: s.etat
+          })),
+          pieces: intervention.pieces
+        };
+      });
+
+      // 4. Pagination
       const totalPages = Math.ceil(total / limit);
       const hasNext = page < totalPages;
       const hasPrev = page > 1;
@@ -75,10 +85,8 @@ class InterventionService extends CrudService {
         },
       };
     } catch (error) {
-      console.error("Error in getAllByMechanic:", error);
-      throw new Error(
-        `Erreur lors de la récupération des interventions: ${error.message}`
-      );
+      console.error('Error in getAllByMechanic:', error);
+      throw new Error(`Erreur lors de la récupération des interventions: ${error.message}`);
     }
   }
 
@@ -462,9 +470,7 @@ class InterventionService extends CrudService {
 
     intervention.avancement =
       (nombreServiceFinis * 100) / intervention.services.length;
-    const updatedIntervention = await this.update(interventionId, intervention);
-    const valeurderetour = await this.getDetails(interventionId);
-    return valeurderetour;
+    return await this.update(interventionId, intervention);
   }
 }
 

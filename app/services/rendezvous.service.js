@@ -60,9 +60,9 @@ class RendezVousService extends CrudService {
     const dataFormatted = data.map((item) => ({
       _id: item._id,
       start: item.date,
-      clientName: `${item.userClientId.firstName} ${item.userClientId.name}`,
+      client: item.userClientId,
       status: item.statut,
-      mechanical: `${item.userMecanicientId.firstName} ${item.userMecanicientId.name}`,
+      mechanical: item.userMecanicientId,
     }));
 
     // Calcul de la pagination
@@ -251,10 +251,16 @@ class RendezVousService extends CrudService {
         .populate("userClientId", "-password")
         .populate("userMecanicientId", "-password")
         .populate({
-          path: "services.serviceId", 
+          path: "services.serviceId",
           model: "Service",
         })
         .exec();
+
+      let duration = 0;
+
+      for (let i = 0; i < data.services.length; i++) {
+        duration += data.services[i].serviceId.duree;
+      }
 
       if (!data) {
         console.log("Aucun rendez-vous trouvé avec cet ID.");
@@ -272,6 +278,7 @@ class RendezVousService extends CrudService {
           : undefined,
         description: data.description || undefined,
         start: data.date,
+        serviceTime: duration,
         status: data.statut,
         mechanical: data.userMecanicientId
           ? {
@@ -288,7 +295,7 @@ class RendezVousService extends CrudService {
             }))
           : [],
       };
-      
+
       return appointment;
     } catch (error) {
       console.error("Erreur lors de la récupération du rendez-vous:", error);

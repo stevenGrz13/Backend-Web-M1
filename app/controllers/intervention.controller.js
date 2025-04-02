@@ -234,6 +234,7 @@ class InterventionController extends CrudController {
     }
   }
 
+
   async getDetails(req, res, next) {
     try {
       const {id} = req.params
@@ -278,7 +279,7 @@ class InterventionController extends CrudController {
       new ApiResponse(
           200,
           intervention,
-          "Finir service avec succes"
+          "Action réussi"
       ).send(res);
     } catch (error) {
       new ApiResponse(
