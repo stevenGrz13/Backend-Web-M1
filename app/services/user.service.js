@@ -10,38 +10,79 @@ class UserService extends CrudService {
     super(User);
   }
 
-  async findMecanicienLibreByDate(date) {
-    const listeRendezVous = await rendezVousService.findRendezVousByDate(date);
+  async findMecanicienLibreByDateRange(dateDebut, dateFin) {
+    // 1. Trouver tous les mécaniciens
+    const mecaniciens = await User.find({ role: 'mecanicien' });
 
-    let mecaniciensOccupes = new Set();
+    // 2. Pour chaque mécanicien, vérifier les rendez-vous existants dans la plage
+    const mecaniciensLibres = await Promise.all(
+        mecaniciens.map(async (mecanicien) => {
+          const rendezVousExistants = await RendezVous.find({
+            userMecanicienId: mecanicien._id,
+            $or: [
+              { date: { $gte: dateDebut, $lt: dateFin } },
+              {
+                $expr: {
+                  $lt: [
+                    "$date",
+                    dateFin
+                  ]
+                },
+                $expr: {
+                  $gt: [
+                    { $add: ["$date", { $multiply: ["$dureeTotaleMinutes", 60000] }] },
+                    dateDebut
+                  ]
+                }
+              }
+            ]
+          });
 
-    for (const rdv of listeRendezVous) {
-      let duration = rdv.services.reduce(
-        (acc, service) => acc + service.serviceId.duree,
-        0
-      );
-
-      const dateDebut = new Date(rdv.date);
-      const dateFin = new Date(dateDebut.getTime() + duration * 60000);
-
-      const dateTest = new Date(date);
-
-      if (dateTest >= dateDebut && dateTest <= dateFin) {
-        mecaniciensOccupes.add(rdv.userMecanicientId.toString());
-      }
-    }
-
-    const mechanics = await this.findAllByRole(RoleType.RoleType.MECHANIC);
-
-    const availableMechanics = mechanics.users.filter(
-      (mechanic) => !mecaniciensOccupes.has(mechanic._id.toString())
+          return rendezVousExistants.length === 0 ? mecanicien : null;
+        })
     );
 
+    // 3. Filtrer les résultats et retourner
+    const disponibles = mecaniciensLibres.filter(m => m !== null);
+
     return {
-      nombre: availableMechanics.length,
-      mecaniciens: availableMechanics,
+      nombre: disponibles.length,
+      mecaniciens: disponibles
     };
   }
+
+  // async findMecanicienLibreByDate(date) {
+  //   const listeRendezVous = await rendezVousService.findRendezVousByDate(date);
+  //
+  //   let mecaniciensOccupes = new Set();
+  //
+  //   for (const rdv of listeRendezVous) {
+  //     let duration = rdv.services.reduce(
+  //       (acc, service) => acc + service.serviceId.duree,
+  //       0
+  //     );
+  //
+  //     const dateDebut = new Date(rdv.date);
+  //     const dateFin = new Date(dateDebut.getTime() + duration * 60000);
+  //
+  //     const dateTest = new Date(date);
+  //
+  //     if (dateTest >= dateDebut && dateTest <= dateFin) {
+  //       mecaniciensOccupes.add(rdv.userMecanicientId.toString());
+  //     }
+  //   }
+  //
+  //   const mechanics = await this.findAllByRole(RoleType.RoleType.MECHANIC);
+  //
+  //   const availableMechanics = mechanics.users.filter(
+  //     (mechanic) => !mecaniciensOccupes.has(mechanic._id.toString())
+  //   );
+  //
+  //   return {
+  //     nombre: availableMechanics.length,
+  //     mecaniciens: availableMechanics,
+  //   };
+  // }
 
   async findNombreByRole(role) {
     const users = await this.findAllByRole(role);

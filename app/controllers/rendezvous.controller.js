@@ -88,21 +88,42 @@ class RendezVousController extends CrudController {
 
   async genererRendezVousAvecSuggestion(req, res) {
     try {
-      const rendezVous =
-        await RendezVousService.genererRendezVousAvecSuggestion(req.body);
-      new ApiResponse(
-        200,
-        rendezVous,
-        "Succes pour la creation de RendezVous"
+      // Validation des données d'entrée
+      if (!req.body || !req.body.date || !req.body.services || req.body.services.length === 0) {
+        return new ApiResponse(
+            400,
+            null,
+            "Données de rendez-vous incomplètes. Date et services sont obligatoires."
+        ).send(res);
+      }
+
+      const rendezVous = await RendezVousService.genererRendezVousAvecSuggestion(req.body);
+
+      return new ApiResponse(
+          201, // 201 Created pour les ressources créées avec succès
+          rendezVous,
+          "Rendez-vous créé avec succès"
       ).send(res);
     } catch (error) {
-      new ApiResponse(
-        500,
-        null,
-        "Erreur lors de la creation du rendezVous"
-      ).send(res);
+      console.error("Erreur dans genererRendezVousAvecSuggestion:", error);
 
-      throw error;
+      // Gestion des différents types d'erreurs
+      let statusCode = 500;
+      let errorMessage = "Une erreur interne est survenue";
+
+      if (error.message.includes("Aucun mécanicien disponible")) {
+        statusCode = 409; // 409 Conflict ou 400 Bad Request selon votre préférence
+        errorMessage = error.message;
+      } else if (error.name === "ValidationError") {
+        statusCode = 400;
+        errorMessage = error.message;
+      }
+
+      return new ApiResponse(
+          statusCode,
+          null,
+          errorMessage
+      ).send(res);
     }
   }
 

@@ -56,6 +56,13 @@ class RendezVousService extends CrudService {
   // utils/responseFormatter.js
 
   formatPaginatedResponse(data, total, page, limit) {
+
+    let duration = 0;
+
+    for (let i = 0; i < data[0].services.length; i++) {
+      duration += data[0].services[i].serviceId.duree;
+    }
+
     // Formatage des données
     const dataFormatted = data.map((item) => ({
       _id: item._id,
@@ -63,6 +70,7 @@ class RendezVousService extends CrudService {
       client: item.userClientId,
       status: item.statut,
       mechanical: item.userMecanicientId,
+      serviceTime: duration,
     }));
 
     // Calcul de la pagination
@@ -86,7 +94,6 @@ class RendezVousService extends CrudService {
 
   async getInfos({ page = 1, limit = 10 }) {
     try {
-      let dataResponse = {};
 
       const skip = (page - 1) * limit;
 
@@ -214,22 +221,61 @@ class RendezVousService extends CrudService {
   async genererRendezVousAvecSuggestion(data) {
     try {
       const userService = require("../services/user.service");
-      const date = data.date;
-      const mecanicienLibre = await userService.findMecanicienLibreByDate(date);
-      if (mecanicienLibre.nombre > 0) {
-        var mecanicienId = mecanicienLibre.mecaniciens[0]._id;
-        data.userMecanicientId = mecanicienId.toString();
-        const rendezVous = await RendezVous.create(data);
-        return rendezVous;
-      } else {
-        const message = "Aucun Mecanicien Libre pour votre Date";
-        return message;
+      const serviceService = require("../services/services.service"); // Vous aurez besoin d'un service pour les services
+
+      // 1. Calculer la durée totale des services
+      const services = await Promise.all(
+          data.services.map(async (serviceItem) => {
+            return await serviceService.getById(serviceItem.serviceId);
+          })
+      );
+
+      const dureeTotaleMinutes = services.reduce((total, service) => {
+        return total + (service.dureeEstimee || 0); // Supposons que chaque service a une propriété dureeEstimee en minutes
+      }, 0);
+
+      // 2. Calculer la date de fin
+      const dateDebut = new Date(data.date);
+      const dateFin = new Date(dateDebut.getTime() + dureeTotaleMinutes * 60000);
+
+      // 3. Trouver un mécanicien disponible sur cette plage
+      const mecanicienLibre = await userService.findMecanicienLibreByDateRange(dateDebut, dateFin);
+
+      if (mecanicienLibre.nombre === 0) {
+        throw new Error("Aucun mécanicien disponible pour la plage horaire demandée");
       }
+
+      // 4. Assigner le premier mécanicien disponible et créer le rendez-vous
+      data.userMecanicienId = mecanicienLibre.mecaniciens[0]._id.toString();
+      const rendezVous = await RendezVous.create(data);
+
+      return rendezVous;
     } catch (error) {
-      console.error(error);
-      throw error;
+      console.error("Erreur dans genererRendezVousAvecSuggestion:", error);
+      throw error; // Propager l'erreur pour la gérer dans le controller
     }
   }
+
+  // async genererRendezVousAvecSuggestion(rendezVousData) {
+  //   try {
+  //     const userService = require("../services/user.service");
+  //     const date = rendezVousData.date;
+  //     const mecanicienLibre = await userService.findMecanicienLibreByDate(date);
+  //     if (mecanicienLibre.nombre > 0) {
+  //       var mecanicienId = mecanicienLibre.mecaniciens[0]._id;
+  //       rendezVousData.userMecanicientId = mecanicienId.toString();
+  //       const rendezVous = await RendezVous.create(rendezVousData);
+  //       return rendezVous;
+  //     } else {
+  //       throw new Error("Aucun Mecanicien Libre pour votre Date")
+  //       // const message = "Aucun Mecanicien Libre pour votre Date";
+  //       // return message;
+  //     }
+  //   } catch (error) {
+  //     console.error(error);
+  //     throw error;
+  //   }
+  // }
 
   async fetchPlannings() {
     try {
