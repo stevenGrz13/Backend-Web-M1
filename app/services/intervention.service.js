@@ -458,6 +458,7 @@ class InterventionService extends CrudService {
       pieces: intervention.pieces.map((piece) => ({
         ...piece.pieceId?._doc,
         quantite: piece.quantite,
+        etat: piece.etat
       })),
     };
   }
@@ -484,6 +485,8 @@ class InterventionService extends CrudService {
           model: "Piece",
         })
         .exec();
+
+      console.log("last interventions === ", intervention)
 
       // Vérifier si l'intervention existe et a un rendezVousId valide
       if (!intervention || !intervention.rendezVousId) {
