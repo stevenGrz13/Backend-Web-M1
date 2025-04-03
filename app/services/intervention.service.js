@@ -657,19 +657,11 @@ class InterventionService extends CrudService {
     let intervention = await this.getById(interventionId.toString());
     if (!intervention) throw new Error("Intervention non trouvée");
 
-    let pieceExistante = intervention.pieces.find(
-      (p) => p.pieceId.toString() === pieceId
-    );
-
-    if (pieceExistante) {
-      pieceExistante.quantite += quantite;
-    } else {
-      intervention.pieces.push({
-        pieceId,
-        quantite,
-        etat: false,
-      });
-    }
+    intervention.pieces.push({
+      pieceId,
+      quantite,
+      etat: false,
+    });
 
     await intervention.save();
 
