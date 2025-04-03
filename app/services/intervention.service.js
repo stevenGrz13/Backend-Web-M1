@@ -109,38 +109,37 @@ class InterventionService extends CrudService {
 
   async getLatestFive() {
     try {
-
       // 1. Trouver les rendez-vous associés au mécanicien
       const rendezVousIds = await RendezVous.find().select("_id");
 
       // 2. Trouver les interventions correspondantes
       const [interventions, total] = await Promise.all([
         Intervention.find({
-          status: 'en cours',
+          status: "en cours",
           rendezVousId: { $in: rendezVousIds.map((r) => r._id) },
         })
-            .sort({ createdAt: -1 })
-            .populate({
-              path: "rendezVousId",
-              populate: [
-                {
-                  path: "userClientId",
-                  model: "User",
-                  select: "name firstName email",
-                },
-                {
-                  path: "userMecanicientId",
-                  model: "User",
-                  select: "name firstName email",
-                },
-                { path: "vehiculeId", model: "Vehicle" },
-              ],
-            })
-            .populate("services.serviceId") // Populate les services directement
-            .skip(0)
-            .limit(5)
-            .lean()
-            .exec(),
+          .sort({ createdAt: -1 })
+          .populate({
+            path: "rendezVousId",
+            populate: [
+              {
+                path: "userClientId",
+                model: "User",
+                select: "name firstName email",
+              },
+              {
+                path: "userMecanicientId",
+                model: "User",
+                select: "name firstName email",
+              },
+              { path: "vehiculeId", model: "Vehicle" },
+            ],
+          })
+          .populate("services.serviceId") // Populate les services directement
+          .skip(0)
+          .limit(5)
+          .lean()
+          .exec(),
 
         Intervention.countDocuments({
           rendezVousId: { $in: rendezVousIds.map((r) => r._id) },
@@ -151,16 +150,16 @@ class InterventionService extends CrudService {
       const formattedData = interventions.map((intervention) => {
         // Calculer la somme des durées des services
         const estimateTime = intervention.services.reduce(
-            (total, serviceItem) => {
-              if (
-                  serviceItem.etat === "en cours" &&
-                  serviceItem.serviceId?.duree
-              ) {
-                return total + serviceItem.serviceId.duree;
-              }
-              return total;
-            },
-            0
+          (total, serviceItem) => {
+            if (
+              serviceItem.etat === "en cours" &&
+              serviceItem.serviceId?.duree
+            ) {
+              return total + serviceItem.serviceId.duree;
+            }
+            return total;
+          },
+          0
         );
 
         return {
@@ -180,12 +179,12 @@ class InterventionService extends CrudService {
       });
 
       return {
-        data: formattedData
+        data: formattedData,
       };
     } catch (error) {
       console.error("Error in getAllByMechanic:", error);
       throw new Error(
-          `Erreur lors de la récupération des interventions: ${error.message}`
+        `Erreur lors de la récupération des interventions: ${error.message}`
       );
     }
   }
@@ -652,6 +651,60 @@ class InterventionService extends CrudService {
     }
 
     return await this.getDetails(interventionId);
+  }
+
+  async AjouterPiece(interventionId, pieceId, quantite) {
+    let intervention = await this.getById(interventionId.toString());
+    if (!intervention) throw new Error("Intervention non trouvée");
+
+    let pieceExistante = intervention.pieces.find(
+      (p) => p.pieceId.toString() === pieceId
+    );
+
+    if (pieceExistante) {
+      pieceExistante.quantite += quantite;
+    } else {
+      intervention.pieces.push({
+        pieceId,
+        quantite,
+        etat: false,
+      });
+    }
+
+    await intervention.save();
+
+    return intervention;
+  }
+
+  async ApprouverPiece(interventionId, pieceId) {
+    try {
+      let intervention = await Intervention.findById(interventionId);
+      if (!intervention) {
+        throw new Error("Intervention non trouvée");
+      }
+
+      let piece = intervention.pieces.find(
+        (p) => p.pieceId.toString() === pieceId
+      );
+      if (!piece) {
+        throw new Error("Pièce non trouvée dans l'intervention");
+      }
+
+      piece.etat = true;
+
+      await intervention.save();
+
+      return {
+        success: true,
+        message: "Pièce acceptée avec succès",
+        intervention,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message,
+      };
+    }
   }
 }
 

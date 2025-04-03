@@ -330,6 +330,44 @@ class InterventionController extends CrudController {
 
   ///////
 
+  async AjouterPiece(req, res, next) {
+    try {
+      const { interventionId, pieceId, quantite } = req.body
+      const intervention = await interventionService.AjouterPiece(interventionId, pieceId, quantite);
+      new ApiResponse(
+          200,
+          intervention,
+          "Action réussi rajout piece"
+      ).send(res);
+    } catch (error) {
+      new ApiResponse(
+          500,
+          null,
+          "Erreur lors du rajout de piece"
+      ).send(res);
+    }
+  }
+
+  async ApprouverPiece(req, res, next) {
+    try {
+      const { interventionId, pieceId } = req.body
+      const intervention = await interventionService.ApprouverPiece(interventionId, pieceId);
+      new ApiResponse(
+          200,
+          intervention,
+          "Rajout piece acceptee"
+      ).send(res);
+    } catch (error) {
+      new ApiResponse(
+          500,
+          null,
+          "Erreur lors de l'approbation de rajout de piece"
+      ).send(res);
+    }
+  }
+
+  ///////
+
   async getFactures(req, res, next) {
     try {
       const intervention = await interventionService.getBlocAllFacture();

@@ -37,16 +37,18 @@ class FactureService extends CrudService {
         };
       });
 
-      const piecesFactures = intervention.pieces.map((piece) => {
-        const prixTotal =
-          parseFloat(piece.pieceId.prixunitaire) * piece.quantite;
-        totalPieces += prixTotal;
-        return {
-          pieceId: piece.pieceId._id,
-          quantite: piece.quantite,
-          prix: prixTotal,
-        };
-      });
+      const piecesFactures = intervention.pieces
+        .filter((piece) => piece.etat === true)
+        .map((piece) => {
+          const prixTotal =
+            parseFloat(piece.pieceId.prixunitaire) * piece.quantite;
+          totalPieces += prixTotal;
+          return {
+            pieceId: piece.pieceId._id,
+            quantite: piece.quantite,
+            prix: prixTotal,
+          };
+        });
 
       const total = (totalServices + totalPieces).toFixed(2);
 
@@ -68,19 +70,16 @@ class FactureService extends CrudService {
     }
   }
 
-
-  async getAllByClient(clientId, {page = 1, limit = 1}){
+  async getAllByClient(clientId, { page = 1, limit = 1 }) {
     try {
-
       let dataResponse = {};
 
       const skip = (page - 1) * limit;
 
       const [data, total] = await Promise.all([
-        Facture.find({userClientId: clientId}).skip(skip).limit(limit),
-        Facture.countDocuments({userClientId: clientId}),
+        Facture.find({ userClientId: clientId }).skip(skip).limit(limit),
+        Facture.countDocuments({ userClientId: clientId }),
       ]);
-
 
       const totalPages = Math.ceil(total / limit);
       const hasNext = page < totalPages;
@@ -100,7 +99,9 @@ class FactureService extends CrudService {
 
       return dataResponse;
     } catch (error) {
-      throw new Error(`Erreur lors de la récupération des véhicules: ${error.message}`);
+      throw new Error(
+        `Erreur lors de la récupération des véhicules: ${error.message}`
+      );
     }
   }
 
@@ -133,47 +134,51 @@ class FactureService extends CrudService {
   async getDetailsById(invoiceId) {
     try {
       // Récupérer la facture avec les informations nécessaires
-      const facture = await Facture.findById({_id: invoiceId})
-          .populate('userClientId', 'nom email telephone') // Informations client de base
-          .populate({
-            path: 'services.serviceId',
-            model: 'Service',
-            select: 'nom prix description'
-          })
-          .populate({
-            path: 'pieces.pieceId',
-            model: 'Piece',
-            select: 'nom prixunitaire'
-          })
-          .exec();
+      const facture = await Facture.findById({ _id: invoiceId })
+        .populate("userClientId", "nom email telephone") // Informations client de base
+        .populate({
+          path: "services.serviceId",
+          model: "Service",
+          select: "nom prix description",
+        })
+        .populate({
+          path: "pieces.pieceId",
+          model: "Piece",
+          select: "nom prixunitaire",
+        })
+        .exec();
 
       if (!facture) {
-        throw new Error('Facture non trouvée');
+        throw new Error("Facture non trouvée");
       }
 
-
-
       // Récupérer les détails des services
-      const serviceDetails = facture.services.map(service => ({
+      const serviceDetails = facture.services.map((service) => ({
         nom: service.serviceId.nom,
         prix: parseFloat(service.serviceId.prix),
         description: service.serviceId.description,
-        etat: service.etat
+        etat: service.etat,
       }));
 
       // Calculer le total des services
-      const servicesTotal = serviceDetails.reduce((total, service) => total + service.prix, 0);
+      const servicesTotal = serviceDetails.reduce(
+        (total, service) => total + service.prix,
+        0
+      );
 
       // Récupérer les détails des pièces
-      const pieceDetails = facture.pieces.map(piece => ({
+      const pieceDetails = facture.pieces.map((piece) => ({
         nom: piece.pieceId.nom,
         quantite: piece.quantite,
         prixunitaire: parseFloat(piece.pieceId.prixunitaire),
-        prixTotal: piece.quantite * parseFloat(piece.pieceId.prixunitaire)
+        prixTotal: piece.quantite * parseFloat(piece.pieceId.prixunitaire),
       }));
 
       // Calculer le total des pièces
-      const piecesTotal = pieceDetails.reduce((total, piece) => total + piece.prixTotal, 0);
+      const piecesTotal = pieceDetails.reduce(
+        (total, piece) => total + piece.prixTotal,
+        0
+      );
 
       // Calculer le montant total
       const montantTotal = servicesTotal + piecesTotal;
@@ -188,18 +193,21 @@ class FactureService extends CrudService {
         numeroClient: facture.userClientId.telephone,
         services: {
           details: serviceDetails,
-          total: parseFloat(servicesTotal.toFixed(2))
+          total: parseFloat(servicesTotal.toFixed(2)),
         },
         pieces: {
           details: pieceDetails,
-          total: parseFloat(piecesTotal.toFixed(2))
+          total: parseFloat(piecesTotal.toFixed(2)),
         },
-        montant: parseFloat(montantTotal.toFixed(2))
+        montant: parseFloat(montantTotal.toFixed(2)),
       };
 
       return invoiceDetail;
     } catch (error) {
-      console.error('Erreur lors de la récupération des détails de la facture:', error);
+      console.error(
+        "Erreur lors de la récupération des détails de la facture:",
+        error
+      );
       throw error;
     }
   }
@@ -263,7 +271,7 @@ class FactureService extends CrudService {
 
   async payerFacture(factureId) {
     const facture = await this.getById(factureId);
-    facture.statut = 'payee';
+    facture.statut = "payee";
 
     await this.update(factureId, facture);
     return this.getDetailsById(factureId);

@@ -21,6 +21,8 @@ router.get('/interventionNumberParEtat', interventionController.findNombreInterv
 router.get('/interventionByClientId/:ClientId', interventionController.getInterventionByClientId);
 router.get('/interventionEnCours', interventionController.findOngoingInterventions);
 router.get('/finalizeIntervention/:interventionId', interventionController.finalizeIntervention);
+router.post('/ajouterPiece', interventionController.AjouterPiece);
+router.post('/approuverPiece', interventionController.ApprouverPiece);
 router.get('/:id', interventionController.getById.bind(interventionController));
 router.put('/:id', interventionController.update.bind(interventionController));
 router.delete('/:id', interventionController.delete.bind(interventionController));

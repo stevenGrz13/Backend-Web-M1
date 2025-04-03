@@ -27,6 +27,7 @@ const interventionSchema = new mongoose.Schema(
           required: true,
         },
         quantite: { type: Number, required: true, min: 1 }, // Quantité utilisée
+        etat: { type: Boolean, default: false }
       },
     ],
 
