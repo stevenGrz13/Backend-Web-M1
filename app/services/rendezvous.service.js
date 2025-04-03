@@ -234,8 +234,6 @@ class RendezVousService extends CrudService {
         return total + (service.duree || 0); // Supposons que chaque service a une propriété dureeEstimee en minutes
       }, 0);
 
-      console.log('duree total minute = ',dureeTotaleMinutes);
-
       // 2. Calculer la date de fin
       const dateDebut = new Date(data.date);
       const dateFin = new Date(dateDebut.getTime() + dureeTotaleMinutes * 60000);
@@ -248,7 +246,14 @@ class RendezVousService extends CrudService {
       }
 
       // 4. Assigner le premier mécanicien disponible et créer le rendez-vous
-      data.userMecanicienId = mecanicienLibre.mecaniciens[0]._id.toString();
+      data.userMecanicientId = mecanicienLibre.mecaniciens[0]._id.toString();
+
+      console.log('=======================================');
+      console.log('=======================================');
+      console.log(data);
+      console.log('=======================================');
+      console.log('=======================================');
+
       const rendezVous = await RendezVous.create(data);
 
       return rendezVous;

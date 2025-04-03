@@ -1,4 +1,5 @@
 const User = require("../models/user.model");
+const RendezVous = require("../models/rendezvous.model");
 const CrudService = require("../core/services/crud.service");
 const roleService = require("../services/role.service");
 const rendezVousService = require("../services/rendezvous.service");
@@ -11,43 +12,23 @@ class UserService extends CrudService {
   }
 
   async findMecanicienLibreByDateRange(dateDebut, dateFin) {
-    // 1. Trouver tous les mécaniciens
-    const mecaniciens = await User.find({ role: 'mechanic' });
-    
-    // 2. Pour chaque mécanicien, vérifier les rendez-vous existants dans la plage
-    const mecaniciensLibres = await Promise.all(
-        mecaniciens.map(async (mecanicien) => {
-          const rendezVousExistants = await RendezVous.find({
-            userMecanicienId: mecanicien._id,
-            $or: [
-              { date: { $gte: dateDebut, $lt: dateFin } },
-              {
-                $expr: {
-                  $lt: [
-                    "$date",
-                    dateFin
-                  ]
-                },
-                $expr: {
-                  $gt: [
-                    { $add: ["$date", { $multiply: ["$dureeTotaleMinutes", 60000] }] },
-                    dateDebut
-                  ]
-                }
-              }
-            ]
-          });
+    const mecaniciensDispo = [];
+    const mecaniciens = await this.findAllByRole("mechanic");
 
-          return rendezVousExistants.length === 0 ? mecanicien : null;
-        })
-    );
+    for (const mecanicien of mecaniciens.users) {
+      const listeRdv = await RendezVous.find({
+        userMecanicientId: mecanicien._id,
+        date: { $gte: dateDebut, $lte: dateFin },
+      });
 
-    // 3. Filtrer les résultats et retourner
-    const disponibles = mecaniciensLibres.filter(m => m !== null);
+      if (listeRdv.length === 0) {
+        mecaniciensDispo.push(mecanicien);
+      }
+    }
 
     return {
-      nombre: disponibles.length,
-      mecaniciens: disponibles
+      nombre: mecaniciensDispo.length,
+      mecaniciens: mecaniciensDispo,
     };
   }
 
@@ -96,7 +77,6 @@ class UserService extends CrudService {
   }
 
   async findAllPaginateByRole(role, { page = 1, limit = 10 }) {
-
     let dataResponse = {};
     logger.info(`Récupération de tous les elements...`);
     const skip = (page - 1) * limit;
@@ -107,8 +87,6 @@ class UserService extends CrudService {
       User.find({ roleId: roles[0]._id.toString() }).skip(skip).limit(limit),
       User.countDocuments({ roleId: roles[0]._id.toString() }),
     ]);
-
-
 
     const totalPages = Math.ceil(total / limit);
     const hasNext = page < totalPages;
@@ -134,8 +112,10 @@ class UserService extends CrudService {
       throw new Error("Tous les champs sont requis.");
     }
 
-    const user = await User.findOne({ email, password, roleId })
-        .populate('roleId', 'nom _id');
+    const user = await User.findOne({ email, password, roleId }).populate(
+      "roleId",
+      "nom _id"
+    );
     // console.log("user = ", user)
     if (!user) {
       // console.log("error")
