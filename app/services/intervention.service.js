@@ -657,6 +657,10 @@ class InterventionService extends CrudService {
     let intervention = await this.getById(interventionId.toString());
     if (!intervention) throw new Error("Intervention non trouvée");
 
+    if (!Array.isArray(intervention.pieces)) {
+      intervention.pieces = [];
+    }
+
     intervention.pieces.push({
       pieceId,
       quantite,
@@ -666,7 +670,8 @@ class InterventionService extends CrudService {
     await intervention.save();
 
     return await this.getDetails(interventionId);
-  }
+}
+
 
   async ApprouverPiece(interventionId, pieceId) {
     try {
