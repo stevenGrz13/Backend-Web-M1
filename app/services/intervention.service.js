@@ -673,7 +673,7 @@ class InterventionService extends CrudService {
 
     await intervention.save();
 
-    return intervention;
+    return await this.getDetails(interventionId);
   }
 
   async ApprouverPiece(interventionId, pieceId) {
@@ -694,11 +694,7 @@ class InterventionService extends CrudService {
 
       await intervention.save();
 
-      return {
-        success: true,
-        message: "Pièce acceptée avec succès",
-        intervention,
-      };
+      return await this.getDetails(interventionId);
     } catch (error) {
       return {
         success: false,
