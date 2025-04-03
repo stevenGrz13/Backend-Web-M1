@@ -12,8 +12,8 @@ class UserService extends CrudService {
 
   async findMecanicienLibreByDateRange(dateDebut, dateFin) {
     // 1. Trouver tous les mécaniciens
-    const mecaniciens = await User.find({ role: 'mecanicien' });
-
+    const mecaniciens = await User.find({ role: 'mechanic' });
+    
     // 2. Pour chaque mécanicien, vérifier les rendez-vous existants dans la plage
     const mecaniciensLibres = await Promise.all(
         mecaniciens.map(async (mecanicien) => {

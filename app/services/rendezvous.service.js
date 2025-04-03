@@ -229,10 +229,12 @@ class RendezVousService extends CrudService {
             return await serviceService.getById(serviceItem.serviceId);
           })
       );
-
+      
       const dureeTotaleMinutes = services.reduce((total, service) => {
-        return total + (service.dureeEstimee || 0); // Supposons que chaque service a une propriété dureeEstimee en minutes
+        return total + (service.duree || 0); // Supposons que chaque service a une propriété dureeEstimee en minutes
       }, 0);
+
+      console.log('duree total minute = ',dureeTotaleMinutes);
 
       // 2. Calculer la date de fin
       const dateDebut = new Date(data.date);
