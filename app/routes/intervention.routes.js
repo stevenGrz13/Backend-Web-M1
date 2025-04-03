@@ -6,6 +6,7 @@ const interventionController = require('../controllers/intervention.controller')
 router.post('/', interventionController.create.bind(interventionController));
 router.get('/', interventionController.getAllPaginate.bind(interventionController));
 router.get('/mechanics/:mechanicId', interventionController.getAllByMechanic);
+router.get('/histories/clients/:clientId', interventionController.getHistoriesByClient);
 // router.get('/mechanics/:mechanicId', interventionController.getAllByMechanic);
 router.get('/getFactures', interventionController.getFactures);
 router.post('/finirService', interventionController.FinirService);

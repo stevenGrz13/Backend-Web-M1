@@ -27,6 +27,27 @@ class InterventionController extends CrudController {
     }
   }
 
+
+  async getHistoriesByClient(req, res){
+    try {
+      const { clientId } = req.params;
+      const page = parseInt(req.query.page, 10) || 1;
+      const limit = parseInt(req.query.limit, 10) || 10;
+
+      const {data, pagination} = await interventionService.getHistoriesByClient(clientId, {page, limit});
+
+      ApiResponse.paginate(res, data, pagination, "Récupération des intervention par mécanicien")
+    }catch (error) {
+
+      new ApiResponse(
+          500,
+          null,
+          "Erreur lors de la récupération des rendez-vous"
+      ).send(res);
+      throw error;
+    }
+  }
+
   async getLatestFive(req, res){
     try {
 
