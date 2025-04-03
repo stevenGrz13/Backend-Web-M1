@@ -65,7 +65,7 @@ class FactureController extends CrudController {
 
       const facture = await factureService.payerFacture(factureId);
 
-      new ApiResponse(200, facture, "succes paiement facture").send(res);
+      new ApiResponse(200, facture, "paiement facture est un success").send(res);
     } catch (error) {
       new ApiResponse(500, null, "Erreur lors du paiement du facture").send(
         res

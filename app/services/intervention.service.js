@@ -107,6 +107,89 @@ class InterventionService extends CrudService {
     }
   }
 
+  async getLatestFive() {
+    try {
+
+      // 1. Trouver les rendez-vous associés au mécanicien
+      const rendezVousIds = await RendezVous.find().select("_id");
+
+      // 2. Trouver les interventions correspondantes
+      const [interventions, total] = await Promise.all([
+        Intervention.find({
+          status: 'en cours',
+          rendezVousId: { $in: rendezVousIds.map((r) => r._id) },
+        })
+            .sort({ createdAt: -1 })
+            .populate({
+              path: "rendezVousId",
+              populate: [
+                {
+                  path: "userClientId",
+                  model: "User",
+                  select: "name firstName email",
+                },
+                {
+                  path: "userMecanicientId",
+                  model: "User",
+                  select: "name firstName email",
+                },
+                { path: "vehiculeId", model: "Vehicle" },
+              ],
+            })
+            .populate("services.serviceId") // Populate les services directement
+            .skip(0)
+            .limit(5)
+            .lean()
+            .exec(),
+
+        Intervention.countDocuments({
+          rendezVousId: { $in: rendezVousIds.map((r) => r._id) },
+        }),
+      ]);
+
+      // 3. Transformer les données avec le calcul de estimateTime
+      const formattedData = interventions.map((intervention) => {
+        // Calculer la somme des durées des services
+        const estimateTime = intervention.services.reduce(
+            (total, serviceItem) => {
+              if (
+                  serviceItem.etat === "en cours" &&
+                  serviceItem.serviceId?.duree
+              ) {
+                return total + serviceItem.serviceId.duree;
+              }
+              return total;
+            },
+            0
+        );
+
+        return {
+          _id: intervention._id,
+          client: intervention.rendezVousId?.userClientId,
+          mecanicien: intervention.rendezVousId?.userMecanicientId,
+          vehicle: intervention.rendezVousId?.vehiculeId,
+          status: intervention.status,
+          estimateTime, // La somme des durées des services
+          avancement: intervention.avancement,
+          services: intervention.services.map((s) => ({
+            serviceId: s.serviceId,
+            etat: s.etat,
+          })),
+          pieces: intervention.pieces,
+        };
+      });
+
+      return {
+        data: formattedData
+      };
+    } catch (error) {
+      console.error("Error in getAllByMechanic:", error);
+      throw new Error(
+          `Erreur lors de la récupération des interventions: ${error.message}`
+      );
+    }
+  }
+
   async findInterventionByClientId(ClientId) {
     try {
       const interventions = await Intervention.find()

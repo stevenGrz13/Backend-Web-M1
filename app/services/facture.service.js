@@ -151,6 +151,8 @@ class FactureService extends CrudService {
         throw new Error('Facture non trouvée');
       }
 
+
+
       // Récupérer les détails des services
       const serviceDetails = facture.services.map(service => ({
         nom: service.serviceId.nom,
@@ -263,7 +265,8 @@ class FactureService extends CrudService {
     const facture = await this.getById(factureId);
     facture.statut = 'payee';
 
-    return await this.update(factureId, facture);
+    await this.update(factureId, facture);
+    return this.getDetailsById(factureId);
   }
 }
 

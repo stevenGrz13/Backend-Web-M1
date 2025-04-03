@@ -15,6 +15,7 @@ router.get('/statChiffreAffaireByService/:demande', interventionController.statC
 router.get('/getOngoingInterventionForDashboard', interventionController.getOngoingInterventionForDashboard);
 router.get('/details/:id', interventionController.getDetails);
 router.get('/latest/vehicles/:vehicleId', interventionController.getLatestByVehicleId);
+router.get('/latest-five', interventionController.getLatestFive);
 router.get('/interventionNumber', interventionController.getNumbersOfInterventions);
 router.get('/interventionNumberParEtat', interventionController.findNombreInterventionParEtat);
 router.get('/interventionByClientId/:ClientId', interventionController.getInterventionByClientId);
