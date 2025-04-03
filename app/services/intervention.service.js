@@ -61,6 +61,21 @@ class InterventionService extends CrudService {
       return total;
     }, 0);
 
+    // const baseData = {
+    //   _id: intervention._id,
+    //   client: intervention.rendezVousId?.userClientId,
+    //   mecanicien: intervention.rendezVousId?.userMecanicientId,
+    //   vehicle: intervention.rendezVousId?.vehiculeId,
+    //   status: intervention.status,
+    //   estimateTime,
+    //   avancement: intervention.avancement,
+    //   services: intervention.services.map((s) => ({
+    //     serviceId: s.serviceId,
+    //     etat: s.etat,
+    //   })),
+    //   pieces: intervention.pieces,
+    // };
+
     const baseData = {
       _id: intervention._id,
       client: intervention.rendezVousId?.userClientId,
@@ -69,11 +84,6 @@ class InterventionService extends CrudService {
       status: intervention.status,
       estimateTime,
       avancement: intervention.avancement,
-      services: intervention.services.map((s) => ({
-        serviceId: s.serviceId,
-        etat: s.etat,
-      })),
-      pieces: intervention.pieces,
     };
 
     if (includeCreatedAt) {
@@ -376,6 +386,7 @@ class InterventionService extends CrudService {
       client: rendezVous.userClientId || {},
       mechanical: rendezVous.userMecanicientId || {},
       estimateTime: Math.floor(duration),
+      avancement: intervention.avancement,
       services: intervention.services.map((service) => ({
         ...service.serviceId?._doc,
         etat: service.etat,
