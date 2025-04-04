@@ -12,25 +12,86 @@ class UserService extends CrudService {
   }
 
   async findMecanicienLibreByDateRange(dateDebut, dateFin) {
-    const mecaniciensDispo = [];
-    const mecaniciens = await this.findAllByRole("mechanic");
+    try {
+      const roleMechanic = await roleService.findRole('mechanic');
+      // 1. Trouver les mécaniciens occupés
+      const occupiedMechanics = await RendezVous.aggregate([
+        // Étape 1: Jointure avec les services
+        {
+          $lookup: {
+            from: "services",
+            localField: "services.serviceId",
+            foreignField: "_id",
+            as: "servicesDetails"
+          }
+        },
+        // Étape 2: Calcul durée totale
+        {
+          $addFields: {
+            totalDureeMinutes: { $sum: "$servicesDetails.duree" }
+          }
+        },
+        // Étape 3: Calcul date de fin
+        {
+          $addFields: {
+            dateEnd: {
+              $add: ["$date", { $multiply: ["$totalDureeMinutes", 60000] }]
+            }
+          }
+        },
+        // Étape 4: Filtrage des chevauchements
+        {
+          $match: {
+            $or: [
+              { $and: [{ date: { $lte: dateDebut }}, { dateEnd: { $gte: dateDebut } }] },
+              { $and: [{ date: { $lte: dateFin }}, { dateEnd: { $gte: dateFin } }] },
+              { $and: [{ date: { $gte: dateDebut }}, { dateEnd: { $lte: dateFin } }] }
+            ]
+          }
+        },
+        // Étape 5: Garder seulement les IDs des mécaniciens occupés
+        { $group: { _id: "$userMecanicientId" } }
+      ]);
 
-    for (const mecanicien of mecaniciens.users) {
-      const listeRdv = await RendezVous.find({
-        userMecanicientId: mecanicien._id,
-        date: { $gte: dateDebut, $lte: dateFin },
-      });
+      // 2. Extraire les IDs des mécaniciens occupés
+      const occupiedMechanicIds = occupiedMechanics.map(m => m._id);
 
-      if (listeRdv.length === 0) {
-        mecaniciensDispo.push(mecanicien);
-      }
+      // 3. Trouver les mécaniciens disponibles (non occupés)
+      const availableMechanics = await User.find({
+        roleId: roleMechanic[0]._id,
+        _id: { $nin: occupiedMechanicIds }
+      }).lean();
+
+      return {
+        nombre: availableMechanics.length,
+        mecaniciens: availableMechanics
+      };
+    } catch (error) {
+      console.error("Erreur dans findMecanicienLibreByDateRange:", error);
+      throw error;
     }
-
-    return {
-      nombre: mecaniciensDispo.length,
-      mecaniciens: mecaniciensDispo,
-    };
   }
+
+  // async findMecanicienLibreByDateRange(dateDebut, dateFin) {
+  //   const mecaniciensDispo = [];
+  //   const mecaniciens = await this.findAllByRole("mechanic");
+  //
+  //   for (const mecanicien of mecaniciens.users) {
+  //     const listeRdv = await RendezVous.find({
+  //       userMecanicientId: mecanicien._id,
+  //       date: { $gte: dateDebut, $lte: dateFin },
+  //     });
+  //
+  //     if (listeRdv.length === 0) {
+  //       mecaniciensDispo.push(mecanicien);
+  //     }
+  //   }
+  //
+  //   return {
+  //     nombre: mecaniciensDispo.length,
+  //     mecaniciens: mecaniciensDispo,
+  //   };
+  // }
 
   // async findMecanicienLibreByDate(date) {
   //   const listeRendezVous = await rendezVousService.findRendezVousByDate(date);

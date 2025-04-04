@@ -57,21 +57,25 @@ class RendezVousService extends CrudService {
 
   formatPaginatedResponse(data, total, page, limit) {
 
-    let duration = 0;
-
-    for (let i = 0; i < data[0].services.length; i++) {
-      duration += data[0].services[i].serviceId.duree;
-    }
-
     // Formatage des données
-    const dataFormatted = data.map((item) => ({
-      _id: item._id,
-      start: item.date,
-      client: item.userClientId,
-      status: item.statut,
-      mechanical: item.userMecanicientId,
-      serviceTime: duration,
-    }));
+    const dataFormatted = data.map((item) => {
+      // Calcul de la durée totale des services pour ce rendez-vous
+      let totalDuration = 0;
+      if (item.services && item.services.length > 0) {
+        totalDuration = item.services.reduce((sum, service) => {
+          return sum + (service.serviceId?.duree || 0);
+        }, 0);
+      }
+
+      return {
+        _id: item._id,
+        start: item.date,
+        client: item.userClientId,
+        status: item.statut,
+        mechanical: item.userMecanicientId,
+        serviceTime: totalDuration, // La durée totale en minutes
+      };
+    });
 
     // Calcul de la pagination
     const totalPages = Math.ceil(total / limit);
@@ -221,45 +225,37 @@ class RendezVousService extends CrudService {
   async genererRendezVousAvecSuggestion(data) {
     try {
       const userService = require("../services/user.service");
-      const serviceService = require("../services/services.service"); // Vous aurez besoin d'un service pour les services
+      const serviceService = require("../services/services.service");
 
-      // 1. Calculer la durée totale des services
+      // Calcul durée totale
       const services = await Promise.all(
-          data.services.map(async (serviceItem) => {
-            return await serviceService.getById(serviceItem.serviceId);
-          })
+          data.services.map(s => serviceService.getById(s.serviceId))
       );
-      
-      const dureeTotaleMinutes = services.reduce((total, service) => {
-        return total + (service.duree || 0); // Supposons que chaque service a une propriété dureeEstimee en minutes
-      }, 0);
 
-      // 2. Calculer la date de fin
-      const dateDebut = new Date(data.date);
-      const dateFin = new Date(dateDebut.getTime() + dureeTotaleMinutes * 60000);
+      const dureeTotale = services.reduce((total, s) => total + (s.duree || 0), 0);
 
-      // 3. Trouver un mécanicien disponible sur cette plage
-      const mecanicienLibre = await userService.findMecanicienLibreByDateRange(dateDebut, dateFin);
+      // Calcul plage horaire
+      const debut = new Date(data.date);
+      const fin = new Date(debut.getTime() + dureeTotale * 60000);
 
-      if (mecanicienLibre.nombre === 0) {
-        throw new Error("Aucun mécanicien disponible pour la plage horaire demandée");
+      // Trouver mécanicien disponible
+      const { mecaniciens } = await userService.findMecanicienLibreByDateRange(debut, fin);
+
+      if (!mecaniciens || mecaniciens.length === 0) {
+        throw new Error("Aucun mécanicien disponible pour cette plage horaire");
       }
 
-      // 4. Assigner le premier mécanicien disponible et créer le rendez-vous
-      data.userMecanicientId = mecanicienLibre.mecaniciens[0]._id.toString();
+      // Créer rendez-vous avec le premier mécanicien disponible
+      const rdvData = {
+        ...data,
+        userMecanicientId: mecaniciens[0]._id,
+        duree: dureeTotale // Important pour les futures vérifications
+      };
 
-      console.log('=======================================');
-      console.log('=======================================');
-      console.log(data);
-      console.log('=======================================');
-      console.log('=======================================');
-
-      const rendezVous = await RendezVous.create(data);
-
-      return rendezVous;
+      return await RendezVous.create(rdvData);
     } catch (error) {
-      console.error("Erreur dans genererRendezVousAvecSuggestion:", error);
-      throw error; // Propager l'erreur pour la gérer dans le controller
+      console.error("Erreur création rendez-vous:", error);
+      throw error;
     }
   }
 
