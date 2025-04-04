@@ -135,7 +135,7 @@ class FactureService extends CrudService {
     try {
       // Récupérer la facture avec les informations nécessaires
       const facture = await Facture.findById({ _id: invoiceId })
-        .populate("userClientId", "nom email telephone") // Informations client de base
+        .populate("userClientId", "name email firstName") // Informations client de base
         .populate({
           path: "services.serviceId",
           model: "Service",
@@ -183,14 +183,15 @@ class FactureService extends CrudService {
       // Calculer le montant total
       const montantTotal = servicesTotal + piecesTotal;
 
+      console.log("fatures detail ==== ", facture)
+
       // Construire l'objet de réponse
       const invoiceDetail = {
         date: facture.date,
         status: facture.statut,
         factureId: facture._id,
-        nomClient: facture.userClientId.nom,
+        nomClient: facture.userClientId.firstName + " " + facture.userClientId.name,
         emailClient: facture.userClientId.email,
-        numeroClient: facture.userClientId.telephone,
         services: {
           details: serviceDetails,
           total: parseFloat(servicesTotal.toFixed(2)),
